@@ -26,7 +26,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 input,textarea,w-in{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
 header{background:var(--bg);padding:6px 12px 0}
 .top{display:flex;align-items:center;height:48px}
-.ti{font-size:22px;font-weight:800;padding:8px 10px 8px 0}
+.ti{font-size:24px;font-weight:800;padding:8px 10px 8px 0;margin-left:4px}
 .fl{flex:1}
 .pl{width:140px;flex:none}
 nav{display:flex;gap:4px;padding:4px 0 10px}
@@ -111,6 +111,7 @@ nav button.on{background:var(--ac);color:#fff}
 #tw{flex:none;position:relative;filter:drop-shadow(0 -8px 10px var(--sh))}
 html{background:var(--cd)}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
+w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
 body{overflow:visible}
 #tw::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:160px;background:var(--cd);pointer-events:none}
@@ -161,6 +162,11 @@ class WIn extends HTMLElement{
   set placeholder(v){this.setAttribute('placeholder',v)}
 }
 customElements.define('w-in',WIn);
+function glide(t,ms){
+  t.classList.add('ch');t.focus({preventScroll:true});caretEnd(t);
+  clearTimeout(t._gt);
+  t._gt=setTimeout(()=>{t.classList.remove('ch');if(document.activeElement===t){caretEnd(t);bring(t,1)}},ms);
+}
 function caretEnd(el){
   try{const r=document.createRange();r.selectNodeContents(el);r.collapse(false);const sl=getSelection();sl.removeAllRanges();sl.addRange(r)}catch(e){}
 }
@@ -423,7 +429,13 @@ pg.addEventListener('click',async ev=>{
     e.sets.push({w:l.w||'',r:l.r||''});
     const sl=c.querySelector('.sl');
     sl.insertAdjacentHTML('beforeend',rowHTML(e.sets[k]));
-    commit(e);enter(sl.lastElementChild);upd(c,e);save();
+    const nr=sl.lastElementChild;
+    commit(e);enter(nr);upd(c,e);save();
+    const act=document.activeElement;
+    if(act&&act.matches&&act.matches('w-in')&&sl.contains(act)){
+      const t=nr.querySelector('w-in[data-f="'+act.dataset.f+'"]');
+      if(DUR)glide(t,DUR+80);else{t.focus({preventScroll:true});caretEnd(t)}
+    }
   }else if(a==='ds'){
     const row=b.closest('.r');
     const act=document.activeElement;
@@ -431,17 +443,8 @@ pg.addEventListener('click',async ev=>{
       const f=act.dataset.f,rs=rowsOf(c),i=rs.indexOf(row),nx=rs[i+1]||rs[i-1];
       if(nx){
         const t=nx.querySelector('w-in[data-f="'+f+'"]');
-        if(nx===rs[i+1]&&DUR){
-          const im=t.getAttribute('inputmode');if(im)kx.setAttribute('inputmode',im);else kx.removeAttribute('inputmode');
-          kx.textContent='';kx.focus({preventScroll:true});
-          setTimeout(()=>{
-            if(document.activeElement!==kx||!t.isConnected)return;
-            const extra=kx.textContent;kx.textContent='';
-            t.focus({preventScroll:true});caretEnd(t);
-            if(extra){t.textContent+=extra;caretEnd(t);t.dispatchEvent(new Event('input',{bubbles:true}))}
-            bring(t,1);
-          },DUR+80);
-        }else{t.focus({preventScroll:true});caretEnd(t);setTimeout(()=>bring(t,1),DUR+40)}
+        if(nx===rs[i+1]&&DUR)glide(t,DUR+60);
+        else{t.focus({preventScroll:true});caretEnd(t);setTimeout(()=>bring(t,1),DUR+40)}
       }
       else act.blur();
     }
@@ -616,7 +619,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106g';
+const BUILD='20261106h';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
