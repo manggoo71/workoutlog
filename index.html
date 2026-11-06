@@ -336,6 +336,7 @@ function dlg(m,o){
     k.textContent=o.ok||'확인';k.className=o.danger?'dgr':'';
     $('#dc').style.display=o.nc?'none':'';
     const dd=$('#dd');dd.style.display=o.del?'block':'none';dd.textContent=o.del||'';
+    if(o.ta!=null&&!o.ro)dkSet(est());
     g.classList.add('on');
     if(cont){
       /* 앞 팝업에서 바로 이어질 때: 닫았다 다시 열지 않고 내용만 바꾸며 높이를 부드럽게 맞춘다 */
@@ -343,7 +344,7 @@ function dlg(m,o){
       sh.animate([{height:h0+'px'},{height:h1+'px'}],{duration:340,easing:EZ});
       [...sh.children].forEach(x=>x.animate([{opacity:0},{opacity:1}],{duration:260,delay:60,easing:'ease-out',fill:'backwards'}));
     }
-    const end=v=>{g._end=performance.now();g.classList.remove('on');res(v)};
+    const end=v=>{g._end=performance.now();g.classList.remove('on');wantDt=null;dkSet(0);res(v)};
     if(o.x)o.x(dx,end);
     k.onclick=()=>{
       if(o.ro){t.select();try{document.execCommand('copy')}catch(e){}try{navigator.clipboard.writeText(t.value).catch(()=>{})}catch(e){}}
@@ -353,7 +354,7 @@ function dlg(m,o){
     dd.onclick=()=>end('del');
     const t0=Date.now();g.onclick=e=>{if(e.target===g&&Date.now()-t0>450)end(false)};
     if(o.ta!=null){
-      const go=()=>{dkSet(est());t.focus({preventScroll:true});if(o.ro||o.ta)t.select()};
+      const go=()=>{t.focus({preventScroll:true});if(o.ro||o.ta)t.select()};
       if(g.classList.contains('hold'))wantDt=go;else go();
     }
   });
@@ -419,6 +420,12 @@ pg.addEventListener('click',async ev=>{
     commit(e);enter(sl.lastElementChild);upd(c,e);save();
   }else if(a==='ds'){
     const row=b.closest('.r');
+    const act=document.activeElement;
+    if(act&&row.contains(act)){
+      const f=act.dataset.f,rs=rowsOf(c),i=rs.indexOf(row),nx=rs[i+1]||rs[i-1];
+      if(nx){const t=nx.querySelector('w-in[data-f="'+f+'"]');t.focus({preventScroll:true});caretEnd(t);setTimeout(()=>bring(t,1),DUR+40)}
+      else act.blur();
+    }
     e.sets.splice(rowsOf(c).indexOf(row),1);
     commit(e);exit(row);upd(c,e);save();
   }
@@ -590,7 +597,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106e';
+const BUILD='20261106f';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -696,21 +703,24 @@ document.addEventListener('focusin',e=>{
   hard(e.target);
   if(e.target.matches&&e.target.matches('input,textarea,w-in')){idle=false;clearTimeout(idleT);root.classList.add('kbo')}
 },true);
-document.addEventListener('focusout',()=>setTimeout(()=>{
-  const a=document.activeElement;
-  if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
-  root.classList.remove('kbo');
-  idle=true;
-  if(kbNow<50)release();else{clearTimeout(idleT);idleT=setTimeout(()=>{if(idle)release()},900)}
-},120),true);
+document.addEventListener('focusout',e=>{
+  const n=e.relatedTarget;
+  if(n&&n.matches&&n.matches('input,textarea,w-in'))return;
+  setTimeout(()=>{
+    const a=document.activeElement;
+    if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
+    root.classList.remove('kbo');
+    release();
+  },0);
+},true);
 function pin(){
   if(!vv)return;
   const off=Math.max(0,vv.offsetTop),kb=Math.max(0,innerHeight-vv.height-off);
-  if(kb>=50||!root.style.getPropertyValue('--kp'))root.style.setProperty('--kb',kb+'px');
+  {const a=document.activeElement,ed=a&&a.matches&&a.matches('input,textarea,w-in');root.style.setProperty('--kb',(ed?kb:0)+'px')}
   document.body.style.transform=off?'translate3d(0,'+off+'px,0)':'';
   if(scrollY||scrollX)scrollTo(0,0);
   const was=kbNow;kbNow=kb;
-  if(document.activeElement&&document.activeElement.id==='dt'&&kb>200&&Math.abs(kb-was)>10)dkSet(kb);
+  if(document.activeElement&&document.activeElement.id==='dt'&&kb>200&&Math.abs(kb-parseFloat(getComputedStyle(root).getPropertyValue('--dk')||0))>24)dkSet(kb);
   if(was>=50&&kb<50){
     /* 키보드가 닫혔으면 포커스 상태와 상관없이 정리(타이머 복귀·여백 해제) */
     const a=document.activeElement;
