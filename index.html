@@ -125,18 +125,15 @@ body{timeline-scope:--pg}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
-#tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));z-index:4;filter:drop-shadow(0 3px 12px var(--sh))}
+#tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));z-index:4}
 html{background:var(--cd)}
-#kpt{position:fixed;left:0;top:0;width:0;height:0;z-index:5;pointer-events:none;visibility:hidden;transition:transform .46s cubic-bezier(.45,.05,.2,1)}
-#kpt.on{visibility:visible}
-#kpt{will-change:transform}
-#kpt .kb{position:absolute;top:0;background:#fff;border-radius:16px;contain:strict;box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 2px 5px rgba(0,0,0,.07),0 6px 16px rgba(0,0,0,.12)}
-#kpt .kt{position:absolute;left:0;top:0;white-space:nowrap;color:#000;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums;transform-origin:0 0;will-change:transform}
-/* 키보드 위 타이머가 하단 타이머로 돌아오는 동안 진짜 하단 타이머는 숨겨 두었다가 도착하는 순간 넘겨받는다 */
-html.kmh #tw{opacity:0!important;transition:none!important}
-html.kmc #tw{z-index:6;filter:none;transition:none}
-html.kmc #tw .tf{background:transparent}
-html.kmc #tm{visibility:hidden}
+/* 하단 타이머: 배경·그림자를 별도 층으로 두고, 작은 타이머로 변할 때 이 층과 내용이 한 덩어리로 함께 변형된다 */
+#tw .tsh,#tw .tbg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+#tw .tsh{border-radius:28px;box-shadow:0 3px 12px var(--sh)}
+#tw .tbg{background:var(--cd);--r:28px}
+#tw .tf{position:relative}
+#tm,#wk,#tw .ib2{will-change:transform}
+html.kpm #tw{opacity:1!important}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
@@ -145,13 +142,13 @@ body{overflow:visible}
 html.kbo #tw{opacity:0;pointer-events:none}
 #fb{position:absolute;left:0;right:0;bottom:0;height:var(--pb,124px);z-index:3;pointer-events:none;background:linear-gradient(to top,var(--bg) 0%,var(--bg) calc(100% - var(--gp)),color-mix(in srgb,var(--bg) 0%,transparent) 100%);transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #fb{opacity:0}
-.tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px;background:var(--cd);--r:28px;border-radius:var(--r)}
+.tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px}
 .tl{display:contents}
 .spn{display:inline-flex;width:0;opacity:0;overflow:hidden;color:var(--mu);transition:opacity .2s,width .25s var(--e)}
 .spn svg{flex:none;margin-left:6px;animation:spn .9s steps(8) infinite}
 html.bkp .spn{width:20px;opacity:1}
 @keyframes spn{to{transform:rotate(360deg)}}
-#tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
+#tm{transform-origin:0 0;grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
 #wk{display:inline-flex;align-items:center;grid-column:1;grid-row:2;justify-self:start;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
 #tr{grid-column:3}
@@ -164,7 +161,7 @@ html.bkp .spn{width:20px;opacity:1}
 @property --h{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 /* iOS 연속 곡률(스쿼클, G2): 라운드 요소는 --r 만 지정. 새 요소는 이 목록에 선택자를 추가 */
 @supports (clip-path:shape(from 0px 0px,hline to calc(100% - 1px),curve by 1px 1px with 0px 0px / 1px 0px,arc by 1px 1px of 1px cw,vline to 100%,close)){
-.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button,.tf{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
+.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button,#tw .tbg{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
 }
 </style>
 </head>
@@ -176,7 +173,7 @@ html.bkp .spn{width:20px;opacity:1}
 </header>
 <main id="pg"></main>
 <div id="fb"></div>
-<div id="tw"><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
+<div id="tw"><i class="tsh"></i><i class="tbg"></i><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
 <div id="dg"><div class="sh"><p id="dm"></p><div id="dx"></div><textarea id="dt"></textarea><div class="db"><button id="dd"></button><button id="dc">취소</button><button id="dk">확인</button></div></div></div>
 <script>
 const $=s=>document.querySelector(s);
@@ -865,7 +862,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106zi';
+const BUILD='20261106zj';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -900,7 +897,7 @@ $('#tr').onclick=()=>{T={acc:0,st:0};tsave();tshow()};
 /* 세트 기록이 끝나면(무게·횟수 칸에서 빠져나오면) 휴식 타이머를 0부터 다시 시작.
    값을 안 바꿔도, 수동으로 멈추거나 리셋했어도 동일. 같은 세트 안에서 칸을 옮겨 다니는 동안은 기다린다. */
 let noRest=0;
-function restGo(){T={acc:0,st:Date.now()};tsave();tshow();try{kpT.textContent='00:00'}catch(e){}}
+function restGo(){T={acc:0,st:Date.now()};tsave();tshow()}
 document.addEventListener('focusout',e=>{
   const t=e.target;if(!t.matches||!t.matches('.f w-in')||noRest||document.hidden)return;
   const n=e.relatedTarget;
@@ -949,87 +946,88 @@ const ACC=60;
 /* 키보드 위 타이머 알약이 차지하는 높이(간격 8 + 높이 32 + 여유) */
 const KPH=0;
 const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
-const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');kpt.innerHTML='<i class="kb"></i><b class="kt"></b>';document.body.appendChild(kpt);
-const kpB=kpt.firstChild,kpT=kpt.lastChild,KH=32,KD=560,KS=15/46,KPAD=13;
-/* 큰 타이머 ↔ 작은 타이머: 천천히 출발해 부드럽게 멈추는 곡선 */
-const KE='cubic-bezier(.45,.05,.2,1)',KEU='cubic-bezier(.25,.6,.2,1)';
-let kpOn=false,kpY=0,TWG=null;
-const kpTarget=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH);
-/* 하단 타이머 카드·숫자의 '키보드가 없을 때' 위치를 기억(키보드가 있을 땐 화면이 움직여 믿을 수 없음) */
-function twMeasure(){
-  if(kpOn||kbNow>=50||root.classList.contains('kbo')||root.classList.contains('kmc'))return;
-  const f=$('#tw .tf').getBoundingClientRect(),bt=document.body.getBoundingClientRect().top;
-  /* 숫자 줄 상자(줄 높이 1) 기준으로 재야 작은 타이머 숫자와 정확히 겹친다 */
-  const r=document.createRange();r.selectNodeContents($('#tm'));const t=r.getBoundingClientRect(),m=$('#tm').getBoundingClientRect();
-  if(f.width&&t.width)TWG={x:f.left,y:f.top-bt,w:f.width,h:f.height,tx:t.left,ty:m.top-bt};
-}
-/* 큰 타이머 ↔ 작은 타이머: 배경과 숫자를 같은 프레임에서 함께 그려 서로 어긋나지 않게 한다 */
-const bez=(a,b,c,d)=>{
-  const X=t=>((1-3*c+3*a)*t+(3*c-6*a))*t*t+3*a*t,Y=t=>((1-3*d+3*b)*t+(3*d-6*b))*t*t+3*b*t,dX=t=>(3*(1-3*c+3*a)*t+2*(3*c-6*a))*t+3*a;
-  return x=>{if(x<=0)return 0;if(x>=1)return 1;let t=x;for(let i=0;i<6;i++){const e=X(t)-x,dv=dX(t);if(Math.abs(e)<1e-5||!dv)break;t-=e/dv}return Y(Math.min(1,Math.max(0,t)))};
-};
-/* iOS 리퀴드 글래스 느낌의 감쇠 스프링: 빠르게 이동한 뒤 목표를 약 2% 지나쳤다가 한 번 부드럽게 자리 잡는다 */
-const spring=(z,w)=>{const wd=w*Math.sqrt(1-z*z),k=z*w/wd;return t=>t>=1?1:1-Math.exp(-z*w*t)*(Math.cos(wd*t)+k*Math.sin(wd*t))};
-const SPR=spring(.78,9.5);
+/* ── 하단 타이머 ↔ 키보드 위 작은 타이머 ──
+   진짜 하단 타이머 하나(배경·숫자·'운동 시작'·버튼)가 값 m 하나로 함께 변형된다(m=0 큰 타이머, m=1 작은 타이머).
+   목표는 부드럽게 출발하는 곡선으로 옮겨 가고, m은 그 목표를 스프링으로 따라가
+   빠르게 이동한 뒤 약 2% 지나쳤다가 한 번 자리를 잡는다. 도중에 방향이 바뀌어도 속도를 이어받는다. */
+const TW=$('#tw'),TSH=TW.querySelector('.tsh'),TBG=TW.querySelector('.tbg'),TM=$('#tm');
+const TEL=[...TW.querySelectorAll('#wk,#ts,#tr')];
+const KH=32,KS=15/46,KPAD=13;
+/* 작아질 때는 올라오는 키보드보다 먼저 떠오르도록 출발을 조금 짧게, 커질 때는 더 여유 있게 */
+const SPRS={1:{w:17,z:.74,ramp:.12},0:{w:16,z:.74,ramp:.2}};
+const M={m:0,v:0,to:0,from:0,t0:0,py:0,pv:0,pt:0,run:0,last:0,g:null,k:SPRS[0]};
+let kpOn=false;
+const eio=x=>-(Math.cos(Math.PI*Math.min(1,Math.max(0,x)))-1)/2;
 const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
-let kpS=null,kpRaf=0;
-function kpApply(q){
-  kpS=q;
-  const B=kpB.style;B.left=q.x+'px';B.top=q.y+'px';B.width=q.w+'px';B.height=q.h+'px';B.borderRadius=q.r+'px';
-  kpT.style.transform='translate3d('+q.tx+'px,'+q.ty+'px,0) scale('+q.ts+')';
+/* 작은 타이머의 위쪽 위치(하단 타이머 기준): 키보드 위 10pt */
+const kpPy=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH)-TW.offsetTop;
+function twRest(){
+  [TM,...TEL].forEach(e=>{e.style.transform='';e.style.opacity=''});
+  TSH.style.cssText='';TBG.style.cssText='';
+  TBG.style.setProperty('--w',TW.offsetWidth+'px');TBG.style.setProperty('--h',TW.offsetHeight+'px');
 }
-/* 작은 타이머: 숫자 양옆 여백 13px */
-function kpPill(){
-  const tw=kpT.offsetWidth*KS,th=kpT.offsetHeight*KS,w=Math.round(tw+KPAD*2),x=Math.round((innerWidth-w)/2);
-  return{x,y:0,w,h:KH,r:KH/2,tx:x+(w-tw)/2,ty:(KH-th)/2,ts:KS};
+/* 큰 타이머일 때의 배치(변형 없는 상태에서 잰다) */
+function twGeo(){
+  const r=TW.getBoundingClientRect(),e=TM.getBoundingClientRect(),rg=document.createRange();rg.selectNodeContents(TM);
+  return{W:TW.offsetWidth,H:TW.offsetHeight,ex:e.left-r.left,ey:e.top-r.top,tw:rg.getBoundingClientRect().width,th:TM.offsetHeight,
+    els:TEL.map(el=>{const b=el.getBoundingClientRect();return{el,cx:b.left-r.left+b.width/2,cy:b.top-r.top+b.height/2}})};
 }
-function kpCard(){const g=TWG;return{x:g.x,y:g.y-kpY,w:g.w,h:g.h,r:28,tx:g.tx,ty:g.ty-kpY,ts:1}}
-function kpTween(from,to,tick,done){
-  cancelAnimationFrame(kpRaf);const t0=performance.now(),K=Object.keys(to);
-  kpApply(from);if(tick)tick(0);
-  const step=n=>{
-    const p=Math.min(1,(n-t0)/KD),e=SPR(p),q={};K.forEach(k=>q[k]=from[k]+(to[k]-from[k])*e);
-    kpApply(q);if(tick)tick(p);
-    if(p<1)kpRaf=requestAnimationFrame(step);else if(done)done();
-  };
-  kpRaf=requestAnimationFrame(step);
+function twDraw(){
+  const g=M.g,m=M.m,mc=Math.min(1,Math.max(0,m));
+  const Pw=Math.round(g.tw*KS+KPAD*2);
+  const C=[0,0,g.W,g.H,28],P=[(g.W-Pw)/2,M.py,Pw,KH,KH/2],F=C.map((c,i)=>c+(P[i]-c)*m);
+  const [x,y,w,h]=F,r=Math.max(0,F[4]),fcx=x+w/2,fcy=y+h/2,ccx=g.W/2,ccy=g.H/2,sx=w/g.W,sy=h/g.H;
+  /* 배경·그림자 */
+  const B=TBG.style,S=TSH.style;
+  B.left=S.left=x+'px';B.top=S.top=y+'px';B.width=S.width=w+'px';B.height=S.height=h+'px';
+  B.setProperty('--w',w+'px');B.setProperty('--h',h+'px');B.setProperty('--r',r+'px');S.borderRadius=r+'px';
+  /* 숫자: 카드 안 왼쪽 자리에서 작은 타이머 한가운데로, 크기는 카드와 같은 비율로 */
+  const tcx=g.ex+g.tw/2,tcy=g.ey+g.th/2;let X,Y,sc;
+  if(m<0){X=fcx+(tcx-ccx)*sx;Y=fcy+(tcy-ccy)*sy;sc=sy}
+  else{X=fcx+(tcx-ccx)*(1-mc);Y=fcy+(tcy-ccy)*(1-mc);sc=1+(KS-1)*m}
+  TM.style.transform='translate3d('+(X-g.tw*sc/2-g.ex)+'px,'+(Y-g.th*sc/2-g.ey)+'px,0) scale('+sc+')';
+  /* '운동 시작'·버튼: 카드에 붙은 채로 같이 줄고 늘며, 카드가 작아질수록 흐려진다 */
+  const o=(1-ss(.06,.5,mc)).toFixed(3);
+  for(const q of g.els){
+    const nx=fcx+(q.cx-ccx)*sx,ny=fcy+(q.cy-ccy)*sy;
+    q.el.style.transform='translate3d('+(nx-q.cx)+'px,'+(ny-q.cy)+'px,0) scale('+sy+')';q.el.style.opacity=o;
+  }
 }
-const twEl=()=>$('#tw');
-function twTrans(on){const tw=twEl();if(on){tw.style.transition='none';root.classList.add('kmc')}else{root.classList.remove('kmc');tw.style.opacity='';tw.getBoundingClientRect();tw.style.transition=''}}
-function kpShow(){
-  twMeasure();kpOn=true;kpY=kpTarget();
-  kpt.getAnimations().forEach(a=>a.cancel());
-  kpt.style.transition='none';kpt.style.transform='translate3d(0,'+kpY+'px,0)';kpt.getBoundingClientRect();kpt.style.transition='';
-  root.classList.remove('kmh');
-  const P=kpPill();kpt.classList.add('on');
-  if(!DUR||!TWG){cancelAnimationFrame(kpRaf);kpApply(P);return}
-  /* 하단 타이머와 같은 모습에서 출발 → 버튼·'운동 시작'은 바로 흐려지고 카드는 작아지며 키보드 위로 */
-  const from=kpS&&kpS.ts<1&&root.classList.contains('kmc')?kpS:kpCard(),tw=twEl(),o0=+getComputedStyle(tw).opacity||0;
-  twTrans(true);
-  kpTween(from,P,p=>{tw.style.opacity=(o0*(1-ss(0,.22,p))).toFixed(3)},()=>{if(kpOn)twTrans(false)});
+function twTick(now){
+  const dt=Math.min(.05,Math.max(0,(now-M.last)/1000));M.last=now;
+  const K=M.k,W2=K.w*K.w,D=2*K.z*K.w;
+  const tgt=M.from+(M.to-M.from)*eio((now-M.t0)/1000/K.ramp),n=Math.max(1,Math.ceil(dt*240)),h=dt/n;
+  for(let i=0;i<n;i++){
+    M.v+=(W2*(tgt-M.m)-D*M.v)*h;M.m+=M.v*h;
+    M.pv+=(W2*(M.pt-M.py)-D*M.pv)*h;M.py+=M.pv*h;
+  }
+  const done=now-M.t0>=K.ramp*1000&&Math.abs(M.m-M.to)<.0015&&Math.abs(M.v)<.02&&Math.abs(M.py-M.pt)<.3&&Math.abs(M.pv)<.6;
+  if(done){M.m=M.to;M.v=0;M.py=M.pt;M.pv=0}
+  twDraw();
+  if(!done){requestAnimationFrame(twTick);return}
+  M.run=0;
+  if(M.to===0){twRest();root.classList.remove('kpm')}
 }
-function kpHide(){
-  kpOn=false;
-  const fin=()=>{if(kpOn)return;kpt.classList.remove('on');kpt.getAnimations().forEach(a=>a.cancel())};
-  if(!DUR||!TWG||!kpS){cancelAnimationFrame(kpRaf);twTrans(false);root.classList.remove('kmh');fin();return}
-  /* 카드가 커지며 내려오는 동안 버튼·'운동 시작'을 미리 서서히 띄워, 다 커졌을 때 이미 보이게 */
-  const tw=twEl();root.classList.remove('kmh');twTrans(true);tw.style.opacity='0';
-  kpTween(kpS,kpCard(),p=>{tw.style.opacity=ss(.16,.46,p).toFixed(3)},()=>{
-    if(kpOn)return;
-    twTrans(false);
-    kpt.animate([{opacity:1},{opacity:0}],{duration:140,easing:'linear',fill:'forwards'}).onfinish=fin;
-  });
+function twRun(){if(!M.run){M.run=1;M.last=performance.now();requestAnimationFrame(twTick)}}
+function twGo(on){
+  M.to=on?1:0;M.k=SPRS[M.to];
+  if(!M.run&&M.m===M.to)return;
+  if(!M.run&&M.m===0){twRest();M.g=twGeo()}
+  if(!DUR){M.m=M.to;M.v=0;M.py=M.pt;if(on){root.classList.add('kpm');twDraw()}else{twRest();root.classList.remove('kpm')}return}
+  M.from=M.m;M.t0=performance.now();
+  root.classList.add('kpm');twRun();
 }
-setTimeout(twMeasure,300);addEventListener('resize',()=>setTimeout(twMeasure,300));
+if(window.ResizeObserver)new ResizeObserver(()=>{if(!M.run&&M.m===0)twRest()}).observe(TW);
+twRest();
 function kpill(){
   const a=document.activeElement,ed=a&&(a.id==='kx'||(a.matches&&a.matches('w-in')&&a.closest('.ps')));
   const on=!!(ed&&(T.st||T.acc>0)&&(kbNow>50||root.classList.contains('kbo')));
+  TW.style.pointerEvents=on?'none':'';
   if(on){
-    const sc=Math.floor(tnow()/1000),tx=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');
-    if(kpT.textContent!==tx)kpT.textContent=tx;
-    if(!kpOn)kpShow();
-    else{const y=kpTarget();if(y!==kpY){kpY=y;kpt.style.transform='translate3d(0,'+y+'px,0)'}}
-  }else{if(kpOn)kpHide();else twMeasure()}
+    const pt=kpPy();
+    if(!kpOn){kpOn=true;if(!M.run&&M.m===0)M.py=pt;M.pt=pt;twGo(true)}
+    else if(pt!==M.pt){M.pt=pt;M.from=M.m;twRun()}
+  }else if(kpOn){kpOn=false;twGo(false)}
 }
 setInterval(kpill,250);
 const root=document.documentElement;
@@ -1108,12 +1106,12 @@ document.addEventListener('touchstart',e=>hard(e.target),{capture:true,passive:t
 document.addEventListener('focusin',e=>{
   hard(e.target);
   if(e.target.matches&&e.target.matches('input,textarea,w-in')){idle=false;clearTimeout(idleT);root.classList.add('kbo')}
-  setTimeout(kpill,0);
+  kpill();setTimeout(kpill,0);
 },true);
 document.addEventListener('focusout',e=>{
   const n=e.relatedTarget;
   if(n&&n.matches&&n.matches('input,textarea,w-in'))return;
-  if(kpOn&&e.target.closest&&e.target.closest('.ps'))kpHide();
+  if(kpOn&&e.target.closest&&e.target.closest('.ps')){kpOn=false;twGo(false)}
   setTimeout(()=>{
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
@@ -1150,7 +1148,7 @@ if(vv){vv.addEventListener('resize',pin);vv.addEventListener('scroll',pin)}
 addEventListener('scroll',()=>{if(scrollY||scrollX)scrollTo(0,0)});
 /* 탭 아래로 스크롤되는 목록은 페이드 아웃 */
 pg.addEventListener('scroll',ev=>{const p=ev.target;if(p.classList&&p.classList.contains('ps'))p.classList.toggle('sc',p.scrollTop>4)},true);
-const SQ='.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button,.tf';
+const SQ='.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button';
 const sqro=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>{
   const t=e.target,b=Array.isArray(e.borderBoxSize)?e.borderBoxSize[0]:e.borderBoxSize;
   t.style.setProperty('--w',(b?b.inlineSize:t.offsetWidth)+'px');
