@@ -9,8 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>운동일지</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=2">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=2">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=2">
 <meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
 <style>
@@ -71,7 +72,7 @@ nav button.on{color:#fff}
 .f w-in{line-height:54px;--r:var(--rb);height:54px;font-size:24px;font-weight:700;text-align:center;width:100%}
 .f w-in:empty::before{color:var(--mu);opacity:.5;font-weight:600;position:absolute;left:0;right:0;top:0;text-align:center}
 .f w-in{position:relative;caret-color:transparent}
-.f w-in:focus::after{content:"";display:inline-block;width:2px;height:.72em;margin:0 -1px;vertical-align:baseline;border-radius:1px;background:var(--ac);animation:cb 1.06s ease-in-out infinite}
+.f w-in:focus::after{content:"";display:inline-block;width:2px;height:.94em;margin:0 -1px;vertical-align:-.11em;border-radius:1px;background:var(--ac);animation:cb 1.06s ease-in-out infinite}
 .f w-in:not(:empty):focus::after{margin:0 -3px 0 1px}
 .f w-in.ty:focus::after{animation-name:cb2}
 .f w-in.ch::after{visibility:hidden}
@@ -117,7 +118,7 @@ nav button.on{color:#fff}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
-#tw{position:absolute;left:max(8px,env(safe-area-inset-bottom,0px));right:max(8px,env(safe-area-inset-bottom,0px));bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));z-index:4;filter:drop-shadow(0 -1px 10px var(--sh))}
+#tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:var(--tg);z-index:4;filter:drop-shadow(0 -1px 10px var(--sh))}
 html{background:var(--cd)}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
@@ -689,7 +690,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106p';
+const BUILD='20261106q';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -737,17 +738,20 @@ const vv=window.visualViewport;
 let kbNow=0,sT=0,kbMax=0;
 try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
 const est=()=>kbNow>50?kbNow:(kbMax||345);
+/* 키보드 윗선: 위에 떠 있는 입력 보조 막대(∧ ∨ ✓) 높이만큼 더 위로 본다 */
+const ACC=60;
+const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC;
 const root=document.documentElement;
 function dkSet(v){root.style.setProperty('--dk',Math.max(0,v)+'px')}
 document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='dt')setTimeout(()=>{if(document.activeElement!==$('#dt'))dkSet(0)},60)},true);
 /* 떠 있는 타이머 높이 + 아래 간격 + 여유를 목록 하단 여백으로 */
 const GP=40;
-function pbv(){const t=$('#tw');if(!t)return 40;const r=t.getBoundingClientRect();return Math.round(innerHeight-r.top+GP)}
+function pbv(){const t=$('#tw');if(!t)return 40;return Math.round(t.offsetHeight+(parseFloat(getComputedStyle(t).bottom)||0)+GP)}
 function syncPb(){root.style.setProperty('--pb',pbv()+'px')}
 if(window.ResizeObserver)new ResizeObserver(syncPb).observe($('#tw'));addEventListener('resize',syncPb);syncPb();
 function setPad(p){
   p=p||curPs();if(!p)return;
-  const pr=p.getBoundingClientRect(),kt=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
+  const pr=p.getBoundingClientRect(),kt=kbTop();
   root.style.setProperty('--kp',Math.max(0,Math.round(pr.bottom-kt+24-pbv()))+'px');
 }
 /* 목록 스크롤: 브라우저 기본 부드러운 스크롤을 사용(입력 커서가 함께 움직임) */
@@ -788,14 +792,14 @@ function bring(el,force,soft){
   const p=el.closest('.ps');if(!p)return;
   if(soft){
     const r=el.getBoundingClientRect(),pr=p.getBoundingClientRect();
-    const kt=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
+    const kt=kbTop();
     if(r.top>=pr.top+12&&r.bottom<=kt-20)return;
   }
   if(!force&&p._be===el&&performance.now()-p._bt<450)return;
   p._be=el;p._bt=performance.now();
   setPad(p);
   const r=el.getBoundingClientRect(),pr=p.getBoundingClientRect();
-  const bottom=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
+  const bottom=kbTop();
   const d=(r.top+r.bottom)/2-(pr.top+Math.min(bottom,pr.bottom))/2;
   if(Math.abs(d)<3)return;
   smoothTo(p,p.scrollTop+d);
