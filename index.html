@@ -35,7 +35,8 @@ nav button.on{background:var(--ac);color:#fff}
 #pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
-.ps{position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + var(--kp,0px))}
+.ps::-webkit-scrollbar{display:none;width:0;height:0}
+.ps{scrollbar-width:none;position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + var(--kp,0px))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
 .c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .34s cubic-bezier(.3,0,.2,1)}
 .c.rm{pointer-events:none}
@@ -653,7 +654,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106k';
+const BUILD='20261106l';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
