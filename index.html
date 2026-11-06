@@ -108,8 +108,9 @@ nav button.on{background:var(--ac);color:#fff}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
 #tw{flex:none;position:relative;filter:drop-shadow(0 -2px 14px var(--sh))}
-#tw::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:calc(env(safe-area-inset-bottom,0px) + 40px);background:var(--cd);pointer-events:none}
-html{background:var(--bg)}
+html{background:var(--cd)}
+#tw{transition:opacity .22s cubic-bezier(.25,1,.5,1)}
+html.kbo #tw{opacity:0;pointer-events:none}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:10px 16px calc(max(10px,calc(env(safe-area-inset-bottom,0px) - 6px)) + var(--xb,0px));background:var(--cd);--r:20px;border-radius:var(--r) var(--r) 0 0}
 .tl{display:contents}
 #tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
@@ -235,8 +236,8 @@ function swap(c,dir,f){
     an.onfinish=an.oncancel=()=>{el.style.position='';el.style.zIndex=''};
   });
   const p=c.closest('.ps'),pr=p.getBoundingClientRect(),ch=c.offsetHeight;
-  if(ft<pr.top+8)p.scrollBy({top:ft-pr.top-8,behavior:'smooth'});
-  else if(ft+ch>pr.bottom-8)p.scrollBy({top:ft+ch-pr.bottom+8,behavior:'smooth'});
+  if(ft<pr.top+8)smoothTo(p,p.scrollTop+ft-pr.top-8);
+  else if(ft+ch>pr.bottom-8)smoothTo(p,p.scrollTop+ft+ch-pr.bottom+8);
   navState(gl);save();
 }
 
@@ -349,7 +350,7 @@ pg.addEventListener('click',async ev=>{
     const gl=gw.querySelector('.gl');
     gl.insertAdjacentHTML('beforeend',cardHTML(e));
     const c=gl.lastElementChild;upd(c,e);enter(c);navState(gl);inp.value='';gw.querySelector('.ad').classList.remove('has');save();
-    setTimeout(()=>c.scrollIntoView({block:'nearest',behavior:'smooth'}),DUR);
+    setTimeout(()=>{const p=c.closest('.ps');if(!p)return;const pr=p.getBoundingClientRect(),cr=c.getBoundingClientRect();if(cr.bottom>pr.bottom-12)smoothTo(p,p.scrollTop+cr.bottom-pr.bottom+12)},DUR);
     return;
   }
   const c=b.closest('.c'),f=fnd(c.dataset.e),e=f.e;
@@ -535,24 +536,52 @@ addEventListener('visibilitychange',tshow);
 const vv=window.visualViewport;
 let kbNow=0,sT=0,kbMax=0;
 try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
-const est=()=>kbNow>50?kbNow:(kbMax||372);
+const est=()=>kbNow>50?kbNow:(kbMax||345);
 const root=document.documentElement;
-function setPad(){root.style.setProperty('--kp',est()+'px')}
-/* 입력칸이 키보드 위에 오도록 목록 스크롤을 '즉시' 옮기고, 화면에서는 같은 거리를 부드럽게 따라가게 한다(FLIP) */
-function bring(el){
+function setPad(){root.style.setProperty('--kp',(est()+230)+'px')}
+/* 모든 목록 스크롤은 이 함수 하나로: 현재 위치에서 이어서 부드럽게(새 요청이 오면 끊고 이어감) */
+const easeOut=t=>1-Math.pow(1-t,4);
+function smoothTo(p,to){
+  const max=Math.max(0,p.scrollHeight-p.clientHeight);to=Math.max(0,Math.min(max,to));
+  cancelAnimationFrame(p._raf);
+  const from=p.scrollTop,dist=to-from;
+  if(Math.abs(dist)<1)return;
+  if(!DUR){p.scrollTop=to;return}
+  const t0=performance.now(),D=Math.min(420,260+Math.abs(dist)*0.25);
+  const step=now=>{
+    const k=Math.min(1,(now-t0)/D);
+    p.scrollTop=from+dist*easeOut(k);
+    if(k<1)p._raf=requestAnimationFrame(step);
+  };
+  p._raf=requestAnimationFrame(step);
+}
+/* 입력칸을 '상단 탭 아래 ~ 키보드 위' 영역의 가운데로 */
+function bring(el,force){
   const p=el.closest('.ps');if(!p)return;
+  if(!force&&p._be===el&&performance.now()-p._bt<450)return;
+  p._be=el;p._bt=performance.now();
   setPad();
   const r=el.getBoundingClientRect(),pr=p.getBoundingClientRect();
-  const bottom=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est(),lim=bottom-14,top=pr.top+8;
-  let d=0;
-  if(r.bottom>lim)d=r.bottom-lim;else if(r.top<top)d=r.top-top;
-  if(Math.abs(d)<2)return;
-  const nt=Math.max(0,Math.min(p.scrollHeight-p.clientHeight,p.scrollTop+d)),real=nt-p.scrollTop;
-  if(Math.abs(real)<1)return;
-  p.scrollTop=nt;
-  const gw=p.querySelector('.gw:not(.hid)');
-  if(DUR&&gw&&gw.animate)gw.animate([{transform:'translateY('+real+'px)'},{transform:'none'}],{duration:280,easing:EZ2});
+  const bottom=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
+  const d=(r.top+r.bottom)/2-(pr.top+Math.min(bottom,pr.bottom))/2;
+  if(Math.abs(d)<3)return;
+  smoothTo(p,p.scrollTop+d);
 }
+const hard=t=>{
+  if(!t||!t.setAttribute||t._h)return;
+  if(t.matches&&t.matches('input,textarea')){
+    t.setAttribute('autocomplete','off');t.setAttribute('autocorrect','off');
+    t.setAttribute('autocapitalize','off');t.setAttribute('spellcheck','false');
+    t.setAttribute('data-lpignore','true');t.setAttribute('data-form-type','other');
+    t._h=1;
+  }
+};
+document.addEventListener('touchstart',e=>hard(e.target),{capture:true,passive:true});
+document.addEventListener('focusin',e=>{hard(e.target);if(e.target.matches&&e.target.matches('input,textarea'))root.classList.add('kbo')},true);
+document.addEventListener('focusout',()=>setTimeout(()=>{
+  const a=document.activeElement;
+  if(!(a&&a.matches&&a.matches('input,textarea')))root.classList.remove('kbo');
+},120),true);
 function pin(){
   if(!vv)return;
   const off=Math.max(0,vv.offsetTop),kb=Math.max(0,innerHeight-vv.height-off);
@@ -561,9 +590,10 @@ function pin(){
   if(scrollY||scrollX)scrollTo(0,0);
   const was=kbNow;kbNow=kb;
   if(kb>200&&Math.abs(kb-was)>20){
+    const same=Math.abs(kb-(kbMax||345))<14&&was<50;
     kbMax=kb;try{localStorage.setItem('wkb',kb)}catch(e){}
     const a=document.activeElement;
-    if(a&&a.matches&&a.matches('input')&&a.closest('.ps')){clearTimeout(sT);sT=setTimeout(()=>{if(document.activeElement===a)bring(a)},60)}
+    if(!same&&a&&a.matches&&a.matches('input')&&a.closest('.ps')){clearTimeout(sT);sT=setTimeout(()=>{if(document.activeElement===a)bring(a,1)},80)}
   }
 }
 if(vv){vv.addEventListener('resize',pin);vv.addEventListener('scroll',pin)}
