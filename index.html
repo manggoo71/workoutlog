@@ -80,7 +80,7 @@ nav button.on{background:var(--ac);color:#fff}
 #dg.on{opacity:1;pointer-events:auto}
 #dg.on.hold{pointer-events:none}
 .sh{width:100%;max-width:420px;max-height:calc(100% - var(--dk,0px));overflow:auto;background:var(--cd);--r:22px;border-radius:var(--r);padding:20px 16px 16px;transform:translateY(calc(var(--dk,0px) * -.5 + 12px)) scale(.94);transition:transform .46s cubic-bezier(.32,.72,0,1)}
-#dg.on .sh{transform:translateY(calc(var(--dk,0px) * -.5))}
+#dg.on .sh,#dg.st .sh{transform:translateY(calc(var(--dk,0px) * -.5))}
 #kx{position:fixed;left:0;top:calc(env(safe-area-inset-top,0px) + 8px);width:2px;height:24px;font-size:16px;opacity:0;pointer-events:none;overflow:hidden;background:none;padding:0;z-index:-1}
 #dm{margin:0 0 14px;font-size:17px;font-weight:600}
 #dt{display:none;width:100%;height:120px;padding:12px;margin-bottom:14px;font-size:16px;resize:none}
@@ -126,6 +126,7 @@ html.kbo #tw{opacity:0;pointer-events:none}
 #ts.run{background:var(--ac2);color:var(--ac)}
 #tr:disabled svg{opacity:.35}
 .ib2:disabled:active{opacity:1}
+@property --mk{syntax:'<length>';inherits:false;initial-value:0px}
 @property --w{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 @property --h{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 /* iOS 연속 곡률(스쿼클, G2): 라운드 요소는 --r 만 지정. 새 요소는 이 목록에 선택자를 추가 */
@@ -234,10 +235,12 @@ const EZ2='cubic-bezier(.25,1,.5,1)';
 function enter(el){
   if(!DUR)return;
   const mb=parseFloat(getComputedStyle(el).marginBottom),h=el.offsetHeight,D=DUR+60;
-  el.style.overflow='hidden';el.style.transformOrigin='50% 0';
+  const MK='linear-gradient(to bottom,#000 calc(100% - var(--mk)),transparent)';
+  el.style.overflow='hidden';el.style.transformOrigin='50% 0';el.style.webkitMaskImage=el.style.maskImage=MK;
   el.animate([{height:'0px',marginBottom:'0px'},{height:h+'px',marginBottom:mb+'px'}],{duration:D,easing:EZ});
-  const a=el.animate([{opacity:0,transform:'translateY(-10px) scale(.97)'},{opacity:1,transform:'none'}],{duration:D,easing:EZ2});
-  a.onfinish=a.oncancel=()=>{el.style.overflow='';el.style.transformOrigin=''};
+  el.animate([{'--mk':'32px'},{'--mk':'0px'}],{duration:D,easing:'cubic-bezier(.5,0,.3,1)'});
+  const a=el.animate([{opacity:0,transform:'translateY(-6px) scale(.97)'},{opacity:0,transform:'translateY(-6px) scale(.97)',offset:.15,easing:'cubic-bezier(.3,0,.2,1)'},{opacity:1,transform:'none'}],{duration:D+40});
+  a.onfinish=a.oncancel=()=>{el.style.overflow='';el.style.transformOrigin='';el.style.webkitMaskImage=el.style.maskImage=''};
 }
 function exit(el){
   const mb=getComputedStyle(el).marginBottom,h=el.offsetHeight;
@@ -336,8 +339,11 @@ function dlg(m,o){
     k.textContent=o.ok||'확인';k.className=o.danger?'dgr':'';
     $('#dc').style.display=o.nc?'none':'';
     const dd=$('#dd');dd.style.display=o.del?'block':'none';dd.textContent=o.del||'';
-    if(o.ta!=null&&!o.ro)dkSet(est());
+    const st=o.ta!=null&&!o.ro;
+    g.classList.toggle('st',st);
+    if(st){sh.style.transition='none';dkSet(est());getComputedStyle(sh).transform}
     g.classList.add('on');
+    if(st){getComputedStyle(sh).transform;sh.style.transition=''}
     if(cont){
       /* 앞 팝업에서 바로 이어질 때: 닫았다 다시 열지 않고 내용만 바꾸며 높이를 부드럽게 맞춘다 */
       const h1=sh.offsetHeight;
@@ -354,7 +360,7 @@ function dlg(m,o){
     dd.onclick=()=>end('del');
     const t0=Date.now();g.onclick=e=>{if(e.target===g&&Date.now()-t0>450)end(false)};
     if(o.ta!=null){
-      const go=()=>{t.focus({preventScroll:true});if(o.ro||o.ta)t.select()};
+      const go=()=>{t.focus({preventScroll:true});if(o.ro)t.select();else{const n=t.value.length;try{t.setSelectionRange(n,n)}catch(e){}}};
       if(g.classList.contains('hold'))wantDt=go;else go();
     }
   });
@@ -423,7 +429,20 @@ pg.addEventListener('click',async ev=>{
     const act=document.activeElement;
     if(act&&row.contains(act)){
       const f=act.dataset.f,rs=rowsOf(c),i=rs.indexOf(row),nx=rs[i+1]||rs[i-1];
-      if(nx){const t=nx.querySelector('w-in[data-f="'+f+'"]');t.focus({preventScroll:true});caretEnd(t);setTimeout(()=>bring(t,1),DUR+40)}
+      if(nx){
+        const t=nx.querySelector('w-in[data-f="'+f+'"]');
+        if(nx===rs[i+1]&&DUR){
+          const im=t.getAttribute('inputmode');if(im)kx.setAttribute('inputmode',im);else kx.removeAttribute('inputmode');
+          kx.textContent='';kx.focus({preventScroll:true});
+          setTimeout(()=>{
+            if(document.activeElement!==kx||!t.isConnected)return;
+            const extra=kx.textContent;kx.textContent='';
+            t.focus({preventScroll:true});caretEnd(t);
+            if(extra){t.textContent+=extra;caretEnd(t);t.dispatchEvent(new Event('input',{bubbles:true}))}
+            bring(t,1);
+          },DUR+80);
+        }else{t.focus({preventScroll:true});caretEnd(t);setTimeout(()=>bring(t,1),DUR+40)}
+      }
       else act.blur();
     }
     e.sets.splice(rowsOf(c).indexOf(row),1);
@@ -597,7 +616,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106f';
+const BUILD='20261106g';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
