@@ -26,7 +26,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 input,textarea,w-in{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
 header{background:var(--bg);padding:6px 12px 0}
 .top{display:flex;align-items:center;height:48px}
-.ti{font-size:24px;font-weight:900;-webkit-text-stroke:.7px currentColor;padding:8px 10px 8px 0;margin-left:8px}
+.ti{font-size:24px;font-weight:900;padding:8px 10px 8px 0;margin-left:8px}
 .fl{flex:1}
 .pl{width:140px;flex:none}
 nav{display:flex;gap:4px;padding:4px 0 10px;position:relative}
@@ -741,7 +741,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106v';
+const BUILD='20261106w';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
