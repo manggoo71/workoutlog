@@ -11,8 +11,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
 <style>
 :root{--bg:#eceef2;--cd:#fff;--tx:#14181f;--mu:#868c97;--ln:#e3e6ec;--ac:#2f5bff;--ac2:#e8edff;--dg:#e5484d;--in:#f3f5f8;--d:.34s;--e:cubic-bezier(.32,.72,0,1);--rb:14px;--sh:rgba(20,24,31,.13);
 box-sizing:border-box}
@@ -37,7 +37,7 @@ nav button.on{color:#fff}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
 .ps::-webkit-scrollbar{display:none;width:0;height:0}
-.ps{scrollbar-width:none;position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + var(--kp,0px))}
+.ps{scrollbar-width:none;position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(var(--pb,124px) + var(--kp,0px))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
 .c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .34s cubic-bezier(.3,0,.2,1)}
 .c.rm{pointer-events:none}
@@ -110,17 +110,15 @@ nav button.on{color:#fff}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
-#tw{flex:none;position:relative;filter:drop-shadow(0 -8px 10px var(--sh))}
+#tw{position:absolute;left:12px;right:12px;bottom:max(14px,calc(env(safe-area-inset-bottom,0px) - 10px));z-index:4;filter:drop-shadow(0 2px 12px var(--sh))}
 html{background:var(--cd)}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
 body{overflow:visible}
-body::after{content:"";position:fixed;left:0;right:0;top:100%;height:200px;background:var(--cd);pointer-events:none}
-#tw::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:160px;background:var(--cd);pointer-events:none}
 #tw{transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #tw{opacity:0;pointer-events:none}
-.tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:10px 16px calc(max(10px,calc(env(safe-area-inset-bottom,0px) - 6px)) + var(--xb,0px));background:var(--cd);--r:20px;border-radius:var(--r) var(--r) 0 0}
+.tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px;background:var(--cd);--r:28px;border-radius:var(--r)}
 .tl{display:contents}
 #tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
 #wk{grid-column:1;grid-row:2;justify-self:start;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
@@ -135,8 +133,7 @@ html.kbo #tw{opacity:0;pointer-events:none}
 @property --h{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 /* iOS 연속 곡률(스쿼클, G2): 라운드 요소는 --r 만 지정. 새 요소는 이 목록에 선택자를 추가 */
 @supports (clip-path:shape(from 0px 0px,hline to calc(100% - 1px),curve by 1px 1px with 0px 0px / 1px 0px,arc by 1px 1px of 1px cw,vline to 100%,close)){
-.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
-.tf{border-radius:0;clip-path:shape(from 0px var(--h), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to var(--h), close)}
+.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button,.tf{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
 }
 </style>
 </head>
@@ -290,7 +287,7 @@ function swap(c,dir,f){
   });
   const p=c.closest('.ps'),pr=p.getBoundingClientRect(),ch=c.offsetHeight;
   if(ft<pr.top+8)smoothTo(p,p.scrollTop+ft-pr.top-8);
-  else if(ft+ch>pr.bottom-8)smoothTo(p,p.scrollTop+ft+ch-pr.bottom+8);
+  else if(ft+ch>pr.bottom-pbv()+8)smoothTo(p,p.scrollTop+ft+ch-pr.bottom+pbv()-8);
   navState(gl);save();
 }
 
@@ -447,7 +444,7 @@ pg.addEventListener('click',async ev=>{
     const gl=gw.querySelector('.gl');
     gl.insertAdjacentHTML('beforeend',cardHTML(e));
     const c=gl.lastElementChild;upd(c,e);enter(c);navState(gl);inp.value='';gw.querySelector('.ad').classList.remove('has');save();
-    setTimeout(()=>{const p=c.closest('.ps');if(!p)return;const pr=p.getBoundingClientRect(),cr=c.getBoundingClientRect();if(cr.bottom>pr.bottom-12)smoothTo(p,p.scrollTop+cr.bottom-pr.bottom+12)},DUR);
+    setTimeout(()=>{const p=c.closest('.ps');if(!p)return;const pr=p.getBoundingClientRect(),cr=c.getBoundingClientRect();if(cr.bottom>pr.bottom-pbv()+12)smoothTo(p,p.scrollTop+cr.bottom-pr.bottom+pbv()-12)},DUR);
     return;
   }
   const c=b.closest('.c'),f=fnd(c.dataset.e),e=f.e;
@@ -664,7 +661,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106m';
+const BUILD='20261106n';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -715,10 +712,14 @@ const est=()=>kbNow>50?kbNow:(kbMax||345);
 const root=document.documentElement;
 function dkSet(v){root.style.setProperty('--dk',Math.max(0,v)+'px')}
 document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='dt')setTimeout(()=>{if(document.activeElement!==$('#dt'))dkSet(0)},60)},true);
+/* 떠 있는 타이머 높이 + 아래 간격 + 여유를 목록 하단 여백으로 */
+function pbv(){const t=$('#tw');if(!t)return 40;const r=t.getBoundingClientRect();return Math.round(innerHeight-r.top+16)}
+function syncPb(){root.style.setProperty('--pb',pbv()+'px')}
+if(window.ResizeObserver)new ResizeObserver(syncPb).observe($('#tw'));addEventListener('resize',syncPb);syncPb();
 function setPad(p){
   p=p||curPs();if(!p)return;
   const pr=p.getBoundingClientRect(),kt=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
-  root.style.setProperty('--kp',Math.max(0,Math.round(pr.bottom-kt+24-40))+'px');
+  root.style.setProperty('--kp',Math.max(0,Math.round(pr.bottom-kt+24-pbv()))+'px');
 }
 /* 목록 스크롤: 브라우저 기본 부드러운 스크롤을 사용(입력 커서가 함께 움직임) */
 function smoothTo(p,to){
@@ -741,7 +742,7 @@ function release(){
   root.classList.remove('kbo');
   const p=curPs(),done=()=>{root.style.removeProperty('--kp');root.style.setProperty('--kb','0px')};
   if(!p){done();return}
-  const pad=parseFloat(getComputedStyle(p).paddingBottom)||0,extra=Math.max(0,pad-40);
+  const pad=parseFloat(getComputedStyle(p).paddingBottom)||0,extra=Math.max(0,pad-pbv());
   const max=p.scrollHeight-p.clientHeight-extra;
   if(extra<1||p.scrollTop<=max+1||!DUR){done();return}
   smoothTo(p,max);
