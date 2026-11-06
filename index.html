@@ -26,7 +26,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 input,textarea,w-in{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
 header{background:var(--bg);padding:6px 12px 0}
 .top{display:flex;align-items:center;height:48px}
-.ti{font-size:24px;font-weight:800;padding:8px 10px 8px 0;margin-left:4px}
+.ti{font-size:24px;font-weight:800;padding:8px 10px 8px 0;margin-left:8px}
 .fl{flex:1}
 .pl{width:140px;flex:none}
 nav{display:flex;gap:4px;padding:4px 0 10px}
@@ -35,9 +35,9 @@ nav button.on{background:var(--ac);color:#fff}
 #pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
-.ps{position:relative;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + max(var(--kb,0px),var(--kp,0px)))}
+.ps{position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + max(var(--kb,0px),var(--kp,0px)))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
-.c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+.c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .5s cubic-bezier(.34,1.45,.64,1)}
 .c.rm{pointer-events:none}
 .h{display:flex;align-items:center;gap:6px;padding:10px 10px 0 16px;min-height:64px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .t{flex:1;min-width:0}
@@ -104,7 +104,7 @@ nav button.on{background:var(--ac);color:#fff}
 .ps.sc .fd::after{opacity:1}
 .sg.pl{--r:13px}
 .sg.pl::before{--r:9px}
-.c.pr{transform:scale(.972);transition:transform .42s cubic-bezier(.3,0,.2,1)}
+.c.pr{transform:scale(.962);transition:transform .22s cubic-bezier(.3,0,.2,1)}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
@@ -162,10 +162,11 @@ class WIn extends HTMLElement{
   set placeholder(v){this.setAttribute('placeholder',v)}
 }
 customElements.define('w-in',WIn);
+let noBring=0;
 function glide(t,ms){
-  t.classList.add('ch');t.focus({preventScroll:true});caretEnd(t);
+  t.classList.add('ch');noBring=1;t.focus({preventScroll:true});noBring=0;caretEnd(t);
   clearTimeout(t._gt);
-  t._gt=setTimeout(()=>{t.classList.remove('ch');if(document.activeElement===t){caretEnd(t);bring(t,1)}},ms);
+  t._gt=setTimeout(()=>{t.classList.remove('ch');if(document.activeElement===t){caretEnd(t);bring(t,1,1)}},ms);
 }
 function caretEnd(el){
   try{const r=document.createRange();r.selectNodeContents(el);r.collapse(false);const sl=getSelection();sl.removeAllRanges();sl.addRange(r)}catch(e){}
@@ -419,6 +420,12 @@ pg.addEventListener('click',async ev=>{
   const c=b.closest('.c'),f=fnd(c.dataset.e),e=f.e;
   if(a==='tg'){
     const open=!c.classList.contains('o');
+    if(DUR){
+      /* 짧게 탭해도 눌렸다가 탄력 있게 돌아오는 느낌이 보이도록 */
+      const m=getComputedStyle(c).transform,from=m&&m!=='none'?m:'none';
+      c.classList.remove('pr');
+      c.animate([{transform:from},{transform:'scale(.955)',offset:.3,easing:'cubic-bezier(.3,0,.4,1)'},{transform:'scale(1.008)',offset:.72,easing:'cubic-bezier(.3,0,.5,1)'},{transform:'scale(1)'}],{duration:520});
+    }
     
     c.classList.toggle('o',open);e.o=open?1:0;save();
   }else if(a==='up'||a==='dn'){
@@ -444,7 +451,7 @@ pg.addEventListener('click',async ev=>{
       if(nx){
         const t=nx.querySelector('w-in[data-f="'+f+'"]');
         if(nx===rs[i+1]&&DUR)glide(t,DUR+60);
-        else{t.focus({preventScroll:true});caretEnd(t);setTimeout(()=>bring(t,1),DUR+40)}
+        else{noBring=1;t.focus({preventScroll:true});noBring=0;caretEnd(t);setTimeout(()=>bring(t,1,1),DUR+40)}
       }
       else act.blur();
     }
@@ -470,7 +477,7 @@ pg.addEventListener('input',ev=>{
 pg.addEventListener('focusin',ev=>{
   const t=ev.target;
   if(t.dataset&&(t.dataset.f==='w'||t.dataset.f==='r'))t.dataset.fv=t.value;
-  if(t.matches&&t.matches('w-in')&&t.closest('.ps'))bring(t);
+  if(!noBring&&t.matches&&t.matches('w-in')&&t.closest('.ps'))bring(t);
 });
 /* 탭: 기본 포커스(화면 튐의 원인) 대신, 먼저 위치를 잡고 스크롤 없이 포커스 */
 let tp=null;
@@ -619,7 +626,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106h';
+const BUILD='20261106i';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -700,8 +707,13 @@ function release(){
   relRaf=requestAnimationFrame(wait);
 }
 /* 입력칸을 '상단 탭 아래 ~ 키보드 위' 영역의 가운데로 */
-function bring(el,force){
+function bring(el,force,soft){
   const p=el.closest('.ps');if(!p)return;
+  if(soft){
+    const r=el.getBoundingClientRect(),pr=p.getBoundingClientRect();
+    const kt=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
+    if(r.top>=pr.top+12&&r.bottom<=kt-20)return;
+  }
   if(!force&&p._be===el&&performance.now()-p._bt<450)return;
   p._be=el;p._bt=performance.now();
   setPad();
