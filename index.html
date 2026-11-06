@@ -26,12 +26,13 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 input,textarea,w-in{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
 header{background:var(--bg);padding:6px 12px 0}
 .top{display:flex;align-items:center;height:48px}
-.ti{font-size:24px;font-weight:800;padding:8px 10px 8px 0;margin-left:8px}
+.ti{font-size:24px;font-weight:900;padding:8px 10px 8px 0;margin-left:8px}
 .fl{flex:1}
 .pl{width:140px;flex:none}
-nav{display:flex;gap:4px;padding:4px 0 10px}
-nav button{flex:1;height:46px;--r:12px;border-radius:var(--r);font-weight:700;font-size:16px;color:var(--mu);transition:background var(--d) var(--e),color var(--d) var(--e)}
-nav button.on{background:var(--ac);color:#fff}
+nav{display:flex;gap:4px;padding:4px 0 10px;position:relative}
+nav button{flex:1;height:46px;--r:12px;border-radius:var(--r);font-weight:700;font-size:16px;color:var(--mu);position:relative;z-index:1;transition:color .28s cubic-bezier(.25,1,.5,1)}
+nav button.on{color:#fff}
+#tbi{position:absolute;left:0;top:4px;height:46px;width:0;--r:12px;border-radius:var(--r);background:var(--ac);will-change:transform;pointer-events:none}
 #pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
@@ -134,7 +135,7 @@ html.kbo #tw{opacity:0;pointer-events:none}
 @property --h{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 /* iOS 연속 곡률(스쿼클, G2): 라운드 요소는 --r 만 지정. 새 요소는 이 목록에 선택자를 추가 */
 @supports (clip-path:shape(from 0px 0px,hline to calc(100% - 1px),curve by 1px 1px with 0px 0px / 1px 0px,arc by 1px 1px of 1px cw,vline to 100%,close)){
-.f w-in,.ad w-in,#dt,nav button,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
+.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
 .tf{border-radius:0;clip-path:shape(from 0px var(--h), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to var(--h), close)}
 }
 </style>
@@ -313,7 +314,7 @@ function build(){
   const st=panels.map(p=>{const q=p.querySelector('.ps');return q?q.scrollTop:0});
   pg.innerHTML=S.tabs.map(()=>'<section class="pn"></section>').join('');
   panels=[...pg.children];
-  $('#tb').innerHTML=S.tabs.map((t,i)=>`<button data-i="${i}">${esc(t.n)}</button>`).join('');
+  $('#tb').innerHTML=S.tabs.map((t,i)=>`<button data-i="${i}">${esc(t.n)}</button>`).join('')+'<i id="tbi"></i>';
   panels.forEach((p,i)=>{
     p.dataset.i=i;
     const gs=S.tabs[i].g,ai=Math.min((S.sg&&S.sg[i])||0,gs.length-1);
@@ -324,7 +325,15 @@ function build(){
   building=1;pg.scrollLeft=cur*pg.clientWidth;mark();
   requestAnimationFrame(()=>{pg.scrollLeft=cur*pg.clientWidth;building=0;mark()});
 }
-function mark(){[...$('#tb').children].forEach((b,i)=>{if(b.classList.contains('on')!==(i===cur))b.classList.toggle('on',i===cur)})}
+function mark(){[...$('#tb').querySelectorAll('button')].forEach((b,i)=>{if(b.classList.contains('on')!==(i===cur))b.classList.toggle('on',i===cur)});ind()}
+/* 선택 표시: 페이지가 넘어가는 만큼 같이 미끄러진다(스와이프·탭 모두) */
+function ind(){
+  const t=$('#tbi'),bs=$('#tb').querySelectorAll('button');if(!t||!bs.length)return;
+  const w=pg.clientWidth||1,pos=Math.max(0,Math.min(bs.length-1,building?cur:pg.scrollLeft/w));
+  const i=Math.floor(pos),j=Math.min(bs.length-1,i+1),k=pos-i,a=bs[i],b=bs[j];
+  const x=a.offsetLeft+(b.offsetLeft-a.offsetLeft)*k,bw=a.offsetWidth+(b.offsetWidth-a.offsetWidth)*k;
+  t.style.width=bw+'px';t.style.transform='translate3d('+x+'px,0,0)';
+}
 let tabMove=0,tabT=0,navT=0;
 /* 입력 중에 부위 탭을 누르면: 키보드 정리(여백·스크롤 복귀)는 탭 이동이 끝난 뒤 조용히 처리 */
 $('#tb').addEventListener('pointerdown',()=>{
@@ -342,6 +351,7 @@ $('#tb').onclick=e=>{
 };
 pg.addEventListener('scroll',()=>{
   if(building)return;
+  ind();
   if(!tabMove&&Math.abs(pg.scrollLeft-cur*pg.clientWidth)>24){
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.pn')){
@@ -619,7 +629,7 @@ $('#pl').onclick=e=>{
 const stamp=()=>{const d=new Date(Date.now()-new Date().getTimezoneOffset()*6e4);return d.toISOString().slice(0,16).replace('T','_').replace(':','')};
 function lastBk(){try{const t=+localStorage.getItem('wbk');if(!t)return '아직 백업한 적이 없어요.';const d=new Date(t);return '마지막 백업: '+d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch(e){return ''}}
 async function doBackup(){
-  const name='운동일지-백업-'+stamp()+'.json';
+  const name='운동일지-백업.json';
   let file;
   try{file=new File([JSON.stringify(S)],name,{type:'application/json'})}catch(e){file=null}
   try{
@@ -654,7 +664,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106l';
+const BUILD='20261106m';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -694,7 +704,7 @@ function wshow(){
   if(b.textContent!==t)b.textContent=t;
   b.classList.toggle('on',!!WS);
 }
-$('#wk').onclick=()=>{WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}wshow()};
+$('#wk').onclick=()=>{const end=!!WS;WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}wshow();if(end)doBackup()};
 setInterval(tshow,250);tshow();
 addEventListener('visibilitychange',tshow);
 /* 키보드: 타이머는 하단에 고정, 입력칸은 가려지지 않게 */
@@ -811,7 +821,7 @@ if(vv){vv.addEventListener('resize',pin);vv.addEventListener('scroll',pin)}
 addEventListener('scroll',()=>{if(scrollY||scrollX)scrollTo(0,0)});
 /* 탭 아래로 스크롤되는 목록은 페이드 아웃 */
 pg.addEventListener('scroll',ev=>{const p=ev.target;if(p.classList&&p.classList.contains('ps'))p.classList.toggle('sc',p.scrollTop>4)},true);
-const SQ='.f w-in,.ad w-in,#dt,nav button,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button,.tf';
+const SQ='.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button,.tf';
 const sqro=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>{
   const t=e.target,b=Array.isArray(e.borderBoxSize)?e.borderBoxSize[0]:e.borderBoxSize;
   t.style.setProperty('--w',(b?b.inlineSize:t.offsetWidth)+'px');
