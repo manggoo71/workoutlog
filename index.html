@@ -69,12 +69,13 @@ body{timeline-scope:--pg}
 .r{counter-increment:s;display:grid;grid-template-columns:26px 1fr 24px 1fr 24px 52px;align-items:start;gap:4px;margin-bottom:8px}
 .r.rm{counter-increment:none;pointer-events:none}
 .n::before{content:counter(s)}
-.r .n{color:var(--mu);font-weight:700;text-align:center;line-height:54px}
+.r .n{color:var(--mu);font-weight:700;text-align:center;line-height:54px;transition:color .25s cubic-bezier(.25,1,.5,1)}
+.r.cur .n{color:var(--ac)}
 .r u{text-decoration:none;color:var(--mu);font-size:13px;line-height:54px}
 .f{display:flex;flex-direction:column;min-width:0}
 .f w-in{line-height:54px;--r:var(--rb);height:54px;font-size:24px;font-weight:700;text-align:center;width:100%}
 .f w-in:empty::before{color:var(--mu);opacity:.5;font-weight:600;position:absolute;left:0;right:0;top:0;text-align:center}
-.f w-in{position:relative;caret-color:transparent}
+.f w-in{position:relative;caret-color:transparent;touch-action:manipulation}
 .f w-in:focus::after{content:"";display:inline-block;width:2px;height:.94em;margin:0 -1px;vertical-align:-.11em;border-radius:1px;background:var(--ac);animation:cb 1.06s ease-in-out infinite}
 .f w-in:not(:empty):focus::after{margin:0 -3px 0 1px}
 .f w-in.ty:focus::after{animation-name:cb2}
@@ -123,8 +124,10 @@ body{timeline-scope:--pg}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
-#tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));z-index:4;filter:drop-shadow(0 -1px 10px var(--sh))}
+#tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));z-index:4;filter:drop-shadow(0 3px 12px var(--sh))}
 html{background:var(--cd)}
+#kpt{position:fixed;left:50%;top:0;z-index:5;height:32px;min-width:92px;padding:0 16px;border-radius:16px;background:#fff;color:#000;font-size:15px;font-weight:600;line-height:32px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.2px;box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 2px 6px rgba(0,0,0,.07),0 8px 22px rgba(0,0,0,.13);pointer-events:none;opacity:0;transform:translate3d(-50%,calc(var(--ky,0px) + 6px),0) scale(.94);transition:opacity .22s cubic-bezier(.25,1,.5,1),transform .34s var(--e)}
+#kpt.on{opacity:1;transform:translate3d(-50%,var(--ky,0px),0)}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
@@ -135,8 +138,12 @@ html.kbo #tw{opacity:0;pointer-events:none}
 html.kbo #fb{opacity:0}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px;background:var(--cd);--r:28px;border-radius:var(--r)}
 .tl{display:contents}
+.spn{display:inline-flex;width:0;opacity:0;overflow:hidden;color:var(--mu);transition:opacity .2s,width .25s var(--e)}
+.spn svg{flex:none;margin-left:6px;animation:spn .9s steps(8) infinite}
+html.bkp .spn{width:20px;opacity:1}
+@keyframes spn{to{transform:rotate(360deg)}}
 #tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
-#wk{grid-column:1;grid-row:2;justify-self:start;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
+#wk{display:inline-flex;align-items:center;grid-column:1;grid-row:2;justify-self:start;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
 #tr{grid-column:3}
 #ts{grid-column:2;background:var(--ac);color:#fff}
@@ -160,7 +167,7 @@ html.kbo #fb{opacity:0}
 </header>
 <main id="pg"></main>
 <div id="fb"></div>
-<div id="tw"><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk">운동 시작</button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
+<div id="tw"><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
 <div id="dg"><div class="sh"><p id="dm"></p><div id="dx"></div><textarea id="dt"></textarea><div class="db"><button id="dd"></button><button id="dc">취소</button><button id="dk">확인</button></div></div></div>
 <script>
 const $=s=>document.querySelector(s);
@@ -203,8 +210,8 @@ document.addEventListener('input',e=>{
 document.addEventListener('focusin',e=>{const t=e.target;if(t.matches&&t.matches('w-in'))t._v=t.textContent},true);
 document.addEventListener('focusout',e=>{
   const t=e.target;if(!t.matches||!t.matches('w-in'))return;
-  if(t._v!==undefined&&t._v!==t.textContent)t.dispatchEvent(new Event('change',{bubbles:true}));
-  t._v=undefined;
+  if(t._dirty||(t._v!==undefined&&t._v!==t.textContent))t.dispatchEvent(new Event('change',{bubbles:true}));
+  t._v=undefined;t._dirty=0;
 },true);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,8);
@@ -227,6 +234,7 @@ function def(o){
   if(o.p[0].length===5)o.t=[1,2,0,3,5][o.t]||0;
   o.p=o.p.map(fix);
   o.p.forEach(ts=>ts.forEach(t=>t.g.forEach(g=>g.e.forEach(e=>{const v=vol(e);if(typeof e.vl!=='number'){e.vl=v;e.tr=0}else if(v!==e.vl){e.tr=v>e.vl?1:-1;e.vl=v}if(typeof e.tr!=='number')e.tr=0}))));
+  if(!o.ss)o.ss=1;
   Object.defineProperty(o,'tabs',{get(){return o.p[o.loc]},enumerable:false,configurable:true});return o}
 function seed(){return def({v:3,u:0,t:0,sg:{},loc:0,p:[mkTabs(),mkTabs()]})}
 function mig(o){
@@ -309,8 +317,8 @@ function swap(c,dir,f){
 }
 
 /* 렌더 */
-const rowHTML=s=>`<div class="r"><span class="n"></span><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" placeholder="0">${esc(s.w)}</w-in></div><u>kg</u><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" placeholder="0">${esc(s.r)}</w-in></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
-const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" placeholder="-">${esc(e.s)}</w-in></label><label>각도<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" placeholder="-">${esc(e.a)}</w-in></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map(rowHTML).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
+const rowHTML=(s,cu)=>`<div class="r${cu?' cur':''}"><span class="n"></span><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" placeholder="0">${esc(s.w)}</w-in></div><u>kg</u><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" placeholder="0">${esc(s.r)}</w-in></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
+const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" placeholder="-">${esc(e.s)}</w-in></label><label>각도<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" placeholder="-">${esc(e.a)}</w-in></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map((s,i)=>rowHTML(s,i===e.ls)).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
 const PLUS='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const XI='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ic=(d,z)=>'<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
@@ -318,7 +326,13 @@ const UP=ic('M6 15l6-6 6 6',18),DN=ic('M6 9l6 6 6-6',18);
 const PLAY=ic('M7.75 5.25v13.5l11.5-6.75z',22),PAUSE=ic('M8 4.75v14.5M16 4.75v14.5',22),XT=ic('M6 6l12 12M18 6L6 18',22);
 const TR={'1':'<span class="tr up">'+ic('M12 19V5M6 11l6-6 6 6',14)+'</span>','-1':'<span class="tr dn">'+ic('M12 5v14M6 13l6 6 6-6',14)+'</span>','0':'<span class="tr eq">'+ic('M6 12h12',14)+'</span>'};
 const fmt=v=>v.toLocaleString('ko-KR');
-function commit(e){const v=vol(e);e.tr=v>e.vl?1:v<e.vl?-1:0;e.vl=v}
+/* 볼륨 비교 기준: 이번 운동을 시작하기 전(지난번 마지막) 볼륨. 세트를 복제한 뒤 값을 낮춰도
+   이번 운동 전체가 지난번보다 많으면 증가로 본다. 운동 종료 또는 6시간 공백이면 새 운동. */
+function commit(e){
+  const v=vol(e),n=Date.now();
+  if(e.bs!==S.ss||typeof e.vb!=='number'||!e.lt||n-e.lt>6*36e5){e.vb=typeof e.vl==='number'?e.vl:v;e.bs=S.ss}
+  e.lt=n;e.tr=v>e.vb?1:v<e.vb?-1:0;e.vl=v;
+}
 const rowsOf=c=>[...c.querySelectorAll('.sl>.r:not(.rm)')];
 function fnd(id){for(const t of S.tabs)for(const g of t.g){const i=g.e.findIndex(x=>x.id===id);if(i>=0)return{e:g.e[i],g:g.e,i}}}
 function upd(c,e){c.querySelector('.cn').innerHTML='<span>총 '+fmt(vol(e))+'kg</span>'+TR[e.tr||0]}
@@ -530,12 +544,13 @@ pg.addEventListener('click',async ev=>{
     const nr=sl.lastElementChild;
     commit(e);enter(nr);upd(c,e);save();
     const act=document.activeElement;
+    if(!(act&&act.matches&&act.matches('.f w-in')))restGo();
     if(act&&act.matches&&act.matches('w-in')&&sl.contains(act)){
       const t=nr.querySelector('w-in[data-f="'+act.dataset.f+'"]');
       if(DUR)glide(t,DUR+80);else{t.focus({preventScroll:true});caretEnd(t)}
     }
   }else if(a==='ds'){
-    const row=b.closest('.r');
+    const row=b.closest('.r'),dk=rowsOf(c).indexOf(row);
     const act=document.activeElement;
     if(act&&row.contains(act)){
       const f=act.dataset.f,rs=rowsOf(c),i=rs.indexOf(row),nx=rs[i+1]||rs[i-1];
@@ -544,9 +559,10 @@ pg.addEventListener('click',async ev=>{
         if(nx===rs[i+1]&&DUR)glide(t,DUR+60);
         else{noBring=1;t.focus({preventScroll:true});noBring=0;caretEnd(t);setTimeout(()=>bring(t,1,1),DUR+40)}
       }
-      else act.blur();
+      else{noRest=1;act.blur();noRest=0}
     }
-    e.sets.splice(rowsOf(c).indexOf(row),1);
+    if(e.ls===dk)e.ls=-1;else if(e.ls>dk)e.ls--;
+    e.sets.splice(dk,1);
     commit(e);exit(row);upd(c,e);save();
   }
 });
@@ -567,7 +583,14 @@ pg.addEventListener('input',ev=>{
 });
 pg.addEventListener('focusin',ev=>{
   const t=ev.target;
-  if(t.dataset&&(t.dataset.f==='w'||t.dataset.f==='r'))t.dataset.fv=t.value;
+  if(t.dataset&&(t.dataset.f==='w'||t.dataset.f==='r')){
+    if(t.value!=='')t.dataset.fv=t.value;
+    const row=t.closest('.r'),c=t.closest('.c');
+    if(row&&c){
+      if(!row.classList.contains('cur')){c.querySelectorAll('.r.cur').forEach(r=>r.classList.remove('cur'));row.classList.add('cur')}
+      const e=fnd(c.dataset.e).e,k=rowsOf(c).indexOf(row);if(e.ls!==k){e.ls=k;lsave()}
+    }
+  }
   if(!noBring&&t.matches&&t.matches('w-in')&&t.closest('.ps'))bring(t);
 });
 /* 탭: 기본 포커스(화면 튐의 원인) 대신, 먼저 위치를 잡고 스크롤 없이 포커스 */
@@ -578,8 +601,11 @@ pg.addEventListener('touchstart',e=>{
   const t=e.target;tp=null;
   if(e.touches.length!==1)return;
   const xy={x:e.touches[0].clientX,y:e.touches[0].clientY};
-  const wi=t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
+  let wi=t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
+  /* 첫 탭 뒤 목록이 움직여도, 같은 자리를 곧바로 다시 누르면 같은 칸의 두 번째 탭으로 본다 */
+  if(lastTap&&lastTap.el.isConnected&&performance.now()-lastTap.t<360&&Math.hypot(xy.x-lastTap.x,xy.y-lastTap.y)<30)wi=lastTap.el;
   if(wi&&wi.closest('.ps')&&document.activeElement!==wi){hoTok++;tp={...xy,t:wi}}
+  else if(wi&&wi.closest('.ps')&&wi.matches('.f w-in')){tp={...xy,t:wi,same:1}}
   else{
     const b=t.closest&&t.closest('[data-a]');
     if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b};
@@ -591,9 +617,13 @@ pg.addEventListener('touchend',e=>{
   const m=Math.hypot(c.clientX-q.x,c.clientY-q.y);
   if(m>8||!e.cancelable)return;
   e.preventDefault();
-  if(q.out){const a=typing();if(a)a.blur();return}
-  if(q.b){q.b.click();return}
-  const t=q.t;
+  if(q.out){lastTap=null;const a=typing();if(a)a.blur();return}
+  if(q.b){lastTap=null;q.b.click();return}
+  const t=q.t,now=performance.now();
+  const dbl=t.matches('.f w-in')&&lastTap&&lastTap.el===t&&now-lastTap.t<360&&Math.hypot(c.clientX-lastTap.x,c.clientY-lastTap.y)<30;
+  lastTap=dbl?null:{el:t,t:now,x:c.clientX,y:c.clientY};
+  if(dbl)clearField(t);
+  if(q.same){caretEnd(t);return}
   if(kbNow<50&&DUR){
     /* 키보드가 없을 때: 화면 위쪽의 보이지 않는 칸에 먼저 포커스해 키보드를 올리고(iOS가 화면 전체를 밀지 않음),
        목록을 부드럽게 옮긴 뒤 실제 칸으로 포커스를 넘긴다 */
@@ -607,6 +637,14 @@ pg.addEventListener('touchend',e=>{
     caretEnd(t);
   }
 },{passive:false});
+/* 무게·횟수 칸 더블탭: 내용을 지우고(지우기 전 값은 흐린 글자로 남김) 커서를 둔다 */
+let lastTap=null;
+function clearField(t){
+  if(t.value!=='')t.dataset.fv=t.value;
+  if(t.value==='')return;
+  t.textContent='';t._dirty=1;
+  t.dispatchEvent(new Event('input',{bubbles:true}));
+}
 const kx=document.createElement('w-in');kx.id='kx';
 ['autocomplete','autocorrect','autocapitalize'].forEach(a=>kx.setAttribute(a,'off'));kx.setAttribute('spellcheck','false');kx.setAttribute('aria-hidden','true');
 document.body.appendChild(kx);
@@ -792,7 +830,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106y';
+const BUILD='20261106z';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -822,17 +860,45 @@ function tshow(){
 $('#tr').innerHTML=XT;
 $('#ts').onclick=()=>{if(T.st){T.acc+=Date.now()-T.st;T.st=0}else T.st=Date.now();tsave();tshow()};
 $('#tr').onclick=()=>{T={acc:0,st:0};tsave();tshow()};
+/* 세트 기록이 끝나면(무게·횟수 칸에서 빠져나오면) 휴식 타이머를 0부터 다시 시작.
+   값을 안 바꿔도, 수동으로 멈추거나 리셋했어도 동일. 같은 세트 안에서 칸을 옮겨 다니는 동안은 기다린다. */
+let noRest=0;
+function restGo(){T={acc:0,st:Date.now()};tsave();tshow()}
+document.addEventListener('focusout',e=>{
+  const t=e.target;if(!t.matches||!t.matches('.f w-in')||noRest)return;
+  setTimeout(()=>{
+    const a=document.activeElement;
+    if(a&&(a.id==='kx'||(a.matches&&a.matches('.f w-in')&&a.closest('.ps'))))return;
+    if(document.hidden)return;
+    restGo();
+  },40);
+},true);
 /* 운동 시간(시:분): '운동 시작'을 누르면 시작, 시간을 누르면 리셋 */
 let WS=0;
 try{WS=+localStorage.getItem('wws')||0}catch(e){}
 if(WS&&Date.now()-WS>12*36e5)WS=0;
 function wshow(){
-  const b=$('#wk');let t='운동 시작';
+  const b=$('#wkt');let t='운동 시작';
   if(WS){const sc=Math.max(0,Math.floor((Date.now()-WS)/1e3)),z=n=>String(n).padStart(2,'0');t=z(Math.floor(sc/3600))+':'+z(Math.floor(sc/60)%60)+':'+z(sc%60)}
   if(b.textContent!==t)b.textContent=t;
-  b.classList.toggle('on',!!WS);
+  $('#wk').classList.toggle('on',!!WS);
 }
-$('#wk').onclick=()=>{const end=!!WS;WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}wshow();if(end)doBackup()};
+/* 운동 종료: 모든 종목을 접고, 세트 강조를 지우고, 새 운동으로 넘긴 뒤 백업(끝날 때까지 진행 표시) */
+$('#wk').querySelector('.spn').innerHTML='<svg viewBox="0 0 24 24" width="14" height="14">'+[0,1,2,3,4,5,6,7].map(i=>'<line x1="12" y1="2.8" x2="12" y2="7.4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="'+(1-i*.11).toFixed(2)+'" transform="rotate('+(-i*45)+' 12 12)"/>').join('')+'</svg>';
+function endWork(){
+  S.ss=(S.ss||1)+1;
+  S.p.forEach(ts=>ts.forEach(t=>t.g.forEach(g=>g.e.forEach(e=>{e.o=0;e.ls=-1}))));
+  document.querySelectorAll('#pg .c.o').forEach(c=>c.classList.remove('o'));
+  document.querySelectorAll('#pg .r.cur').forEach(r=>r.classList.remove('cur'));
+  save();
+}
+$('#wk').onclick=async()=>{
+  const rt=document.documentElement;if(rt.classList.contains('bkp'))return;
+  const end=!!WS;WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}wshow();
+  if(!end)return;
+  endWork();rt.classList.add('bkp');
+  try{await doBackup()}finally{rt.classList.remove('bkp')}
+};
 setInterval(tshow,250);tshow();
 addEventListener('visibilitychange',tshow);
 /* 키보드: 타이머는 하단에 고정, 입력칸은 가려지지 않게 */
@@ -842,7 +908,21 @@ try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
 const est=()=>kbNow>50?kbNow:(kbMax||345);
 /* 키보드 윗선: 위에 떠 있는 입력 보조 막대(∧ ∨ ✓) 높이만큼 더 위로 본다 */
 const ACC=60;
-const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC;
+/* 키보드 위 타이머 알약이 차지하는 높이(간격 8 + 높이 32 + 여유) */
+const KPH=44;
+const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
+const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');document.body.appendChild(kpt);
+function kpill(){
+  const a=document.activeElement,ed=a&&(a.id==='kx'||(a.matches&&a.matches('w-in')&&a.closest('.ps')));
+  const on=!!(vv&&ed&&kbNow>50&&(T.st||T.acc>0));
+  if(on){
+    const y=Math.round(vv.height-ACC-8-32);if(kpt._y!==y){kpt._y=y;kpt.style.setProperty('--ky',y+'px')}
+    const sc=Math.floor(tnow()/1000),tx=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');
+    if(kpt.textContent!==tx)kpt.textContent=tx;
+  }
+  if(kpt.classList.contains('on')!==on)kpt.classList.toggle('on',on);
+}
+setInterval(kpill,250);
 const root=document.documentElement;
 function dkSet(v){root.style.setProperty('--dk',Math.max(0,v)+'px')}
 document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='dt')setTimeout(()=>{if(document.activeElement!==$('#dt'))dkSet(0)},60)},true);
@@ -919,6 +999,7 @@ document.addEventListener('touchstart',e=>hard(e.target),{capture:true,passive:t
 document.addEventListener('focusin',e=>{
   hard(e.target);
   if(e.target.matches&&e.target.matches('input,textarea,w-in')){idle=false;clearTimeout(idleT);root.classList.add('kbo')}
+  setTimeout(kpill,0);
 },true);
 document.addEventListener('focusout',e=>{
   const n=e.relatedTarget;
@@ -926,7 +1007,7 @@ document.addEventListener('focusout',e=>{
   setTimeout(()=>{
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
-    root.classList.remove('kbo');
+    root.classList.remove('kbo');kpill();
     if(tabMove)return;
     release();
   },0);
@@ -946,6 +1027,7 @@ function pin(){
     dkSet(0);
     if(!tabMove)release();
   }else if(idle&&kb<50)release();
+  kpill();
   if(kb>200&&Math.abs(kb-was)>20){
     const same=Math.abs(kb-(kbMax||345))<14&&was<50;
     kbMax=kb;try{localStorage.setItem('wkb',kb)}catch(e){}
