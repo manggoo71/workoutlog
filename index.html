@@ -109,6 +109,8 @@ nav button.on{background:var(--ac);color:#fff}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
 #tw{flex:none;position:relative;filter:drop-shadow(0 -2px 14px var(--sh))}
 html{background:var(--cd)}
+input[type=search]{-webkit-appearance:none;appearance:none}
+input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none;display:none}
 #tw{transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #tw{opacity:0;pointer-events:none}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:10px 16px calc(max(10px,calc(env(safe-area-inset-bottom,0px) - 6px)) + var(--xb,0px));background:var(--cd);--r:20px;border-radius:var(--r) var(--r) 0 0}
@@ -242,8 +244,8 @@ function swap(c,dir,f){
 }
 
 /* 렌더 */
-const rowHTML=s=>`<div class="r"><span class="n"></span><div class="f"><input inputmode="decimal" data-f="w" value="${esc(s.w)}" placeholder="0"></div><u>kg</u><div class="f"><input inputmode="numeric" data-f="r" value="${esc(s.r)}" placeholder="0"></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
-const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<input data-f="s" value="${esc(e.s)}" placeholder="-"></label><label>각도<input data-f="a" value="${esc(e.a)}" placeholder="-"></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map(rowHTML).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
+const rowHTML=s=>`<div class="r"><span class="n"></span><div class="f"><input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" value="${esc(s.w)}" placeholder="0"></div><u>kg</u><div class="f"><input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" value="${esc(s.r)}" placeholder="0"></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
+const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" value="${esc(e.s)}" placeholder="-"></label><label>각도<input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" value="${esc(e.a)}" placeholder="-"></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map(rowHTML).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
 const PLUS='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const XI='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ic=(d,z)=>'<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
@@ -265,7 +267,7 @@ function build(){
   panels.forEach((p,i)=>{
     p.dataset.i=i;
     const gs=S.tabs[i].g,ai=Math.min((S.sg&&S.sg[i])||0,gs.length-1);
-    p.innerHTML=(gs.length>1?`<div class="sgw"><div class="sg" style="--n:${gs.length};--i:${ai}">${gs.map((g,gi)=>`<button data-a="sg" data-gi="${gi}" class="${gi===ai?'on':''}">${esc(g.n)}</button>`).join('')}</div></div>`:'')+'<div class="ps"><div class="fd"></div>'+gs.map((g,gi)=>`<div class="gw${gi===ai?'':' hid'}" data-g="${gi}"><div class="gl">${g.e.map(cardHTML).join('')}</div><div class="ad"><input placeholder="${g.n?g.n+' ':''}종목 추가" enterkeyhint="done"><button data-a="ax" aria-label="종목 추가">${PLUS}</button></div></div>`).join('')+'</div>';
+    p.innerHTML=(gs.length>1?`<div class="sgw"><div class="sg" style="--n:${gs.length};--i:${ai}">${gs.map((g,gi)=>`<button data-a="sg" data-gi="${gi}" class="${gi===ai?'on':''}">${esc(g.n)}</button>`).join('')}</div></div>`:'')+'<div class="ps"><div class="fd"></div>'+gs.map((g,gi)=>`<div class="gw${gi===ai?'':' hid'}" data-g="${gi}"><div class="gl">${g.e.map(cardHTML).join('')}</div><div class="ad"><input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${g.n?g.n+' ':''}종목 추가" enterkeyhint="done"><button data-a="ax" aria-label="종목 추가">${PLUS}</button></div></div>`).join('')+'</div>';
     p.querySelectorAll('.c').forEach(c=>upd(c,fnd(c.dataset.e).e));navState(p);
     {const q=p.querySelector('.ps');q.scrollTop=st[i]||0;q.classList.toggle('sc',q.scrollTop>4)}
   });
@@ -395,23 +397,27 @@ pg.addEventListener('focusin',ev=>{
 });
 /* 탭: 기본 포커스(화면 튐의 원인) 대신, 먼저 위치를 잡고 스크롤 없이 포커스 */
 let tp=null;
+const KEEP=new Set(['as','ds','ax','up','dn']);
+const typing=()=>{const a=document.activeElement;return a&&a.matches&&a.matches('input')&&a.closest('.ps')?a:null};
 pg.addEventListener('touchstart',e=>{
-  const t=e.target;
-  tp=t.matches&&t.matches('input')&&t.closest('.ps')&&document.activeElement!==t&&e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,t}:null;
+  const t=e.target;tp=null;
+  if(e.touches.length!==1)return;
+  const xy={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  if(t.matches&&t.matches('input')&&t.closest('.ps')&&document.activeElement!==t)tp={...xy,t};
+  else{const b=t.closest&&t.closest('[data-a]');if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b}}
 },{passive:true});
 pg.addEventListener('touchend',e=>{
-  if(!tp)return;const c=e.changedTouches[0],t=tp.t;
-  const m=Math.hypot(c.clientX-tp.x,c.clientY-tp.y);tp=null;
+  if(!tp)return;const c=e.changedTouches[0],q=tp;tp=null;
+  const m=Math.hypot(c.clientX-q.x,c.clientY-q.y);
   if(m>8||!e.cancelable)return;
   e.preventDefault();
+  if(q.b){q.b.click();return}
+  const t=q.t;
   bring(t);
   t.focus({preventScroll:true});
   try{const n=t.value.length;t.setSelectionRange(n,n)}catch(x){}
 },{passive:false});
-pg.addEventListener('focusout',()=>setTimeout(()=>{
-  const a=document.activeElement;
-  if(!(a&&a.matches&&a.matches('input')&&a.closest('.ps')))document.documentElement.style.removeProperty('--kp');
-},250));
+
 pg.addEventListener('change',ev=>{
   const f=ev.target.dataset&&ev.target.dataset.f;if(f!=='w'&&f!=='r')return;
   const c=ev.target.closest('.c'),e=fnd(c.dataset.e).e;
@@ -499,6 +505,16 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
+const BUILD='20261106c';
+async function chk(){
+  try{
+    if(!window.fetch||location.protocol.indexOf('http')!==0)return;
+    const t=await (await fetch('index.html',{cache:'no-store'})).text(),m=t.match(/const BUILD='([^']+)'/);
+    const a=document.activeElement;
+    if(m&&m[1]!==BUILD&&!(a&&a.matches&&a.matches('input,textarea')))location.reload();
+  }catch(e){}
+}
+addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});addEventListener('pageshow',chk);
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
 
 /* 휴식 타이머 */
@@ -539,21 +555,27 @@ try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
 const est=()=>kbNow>50?kbNow:(kbMax||345);
 const root=document.documentElement;
 function setPad(){root.style.setProperty('--kp',(est()+230)+'px')}
-/* 모든 목록 스크롤은 이 함수 하나로: 현재 위치에서 이어서 부드럽게(새 요청이 오면 끊고 이어감) */
-const easeOut=t=>1-Math.pow(1-t,4);
+/* 목록 스크롤/여백 변화는 모두 이 함수로: 스크롤 값은 즉시 바꾸고, 화면에서는 같은 거리만큼을
+   GPU 변형(transform)으로 이어서 감속시킨다. 도중에 다시 불려도 현재 보이는 위치에서 이어진다. */
+const FEZ='cubic-bezier(.33,0,.15,1)';
+function flip(p,fn){
+  const gw=p&&p.querySelector('.gw:not(.hid)');
+  if(!gw||!DUR||!gw.animate){fn();return}
+  const r0=gw.getBoundingClientRect().top;
+  if(p._fa){p._fa.cancel();p._fa=null}
+  fn();
+  const off=r0-gw.getBoundingClientRect().top;
+  if(Math.abs(off)<1)return;
+  p._fa=gw.animate([{transform:'translateY('+off+'px)'},{transform:'none'}],{duration:Math.round(Math.min(560,300+Math.abs(off)*.4)),easing:FEZ});
+}
 function smoothTo(p,to){
-  const max=Math.max(0,p.scrollHeight-p.clientHeight);to=Math.max(0,Math.min(max,to));
-  cancelAnimationFrame(p._raf);
-  const from=p.scrollTop,dist=to-from;
-  if(Math.abs(dist)<1)return;
-  if(!DUR){p.scrollTop=to;return}
-  const t0=performance.now(),D=Math.min(420,260+Math.abs(dist)*0.25);
-  const step=now=>{
-    const k=Math.min(1,(now-t0)/D);
-    p.scrollTop=from+dist*easeOut(k);
-    if(k<1)p._raf=requestAnimationFrame(step);
-  };
-  p._raf=requestAnimationFrame(step);
+  flip(p,()=>{p.scrollTop=Math.max(0,Math.min(p.scrollHeight-p.clientHeight,to))});
+}
+const curPs=()=>{const pn=panels&&panels[cur];return pn&&pn.querySelector('.ps')};
+let idle=false,idleT=0;
+function release(){
+  idle=false;clearTimeout(idleT);
+  flip(curPs(),()=>{root.style.removeProperty('--kp');root.style.setProperty('--kb','0px')});
 }
 /* 입력칸을 '상단 탭 아래 ~ 키보드 위' 영역의 가운데로 */
 function bring(el,force){
@@ -577,18 +599,25 @@ const hard=t=>{
   }
 };
 document.addEventListener('touchstart',e=>hard(e.target),{capture:true,passive:true});
-document.addEventListener('focusin',e=>{hard(e.target);if(e.target.matches&&e.target.matches('input,textarea'))root.classList.add('kbo')},true);
+document.addEventListener('focusin',e=>{
+  hard(e.target);
+  if(e.target.matches&&e.target.matches('input,textarea')){idle=false;clearTimeout(idleT);root.classList.add('kbo')}
+},true);
 document.addEventListener('focusout',()=>setTimeout(()=>{
   const a=document.activeElement;
-  if(!(a&&a.matches&&a.matches('input,textarea')))root.classList.remove('kbo');
+  if(a&&a.matches&&a.matches('input,textarea'))return;
+  root.classList.remove('kbo');
+  idle=true;
+  if(kbNow<50)release();else{clearTimeout(idleT);idleT=setTimeout(()=>{if(idle)release()},900)}
 },120),true);
 function pin(){
   if(!vv)return;
   const off=Math.max(0,vv.offsetTop),kb=Math.max(0,innerHeight-vv.height-off);
-  root.style.setProperty('--kb',kb+'px');
+  if(!(idle&&kb<50)){const was0=kbNow;if(Math.round(kb)!==Math.round(was0))flip(curPs(),()=>root.style.setProperty('--kb',kb+'px'));else root.style.setProperty('--kb',kb+'px')}
   document.body.style.transform=off?'translate3d(0,'+off+'px,0)':'';
   if(scrollY||scrollX)scrollTo(0,0);
   const was=kbNow;kbNow=kb;
+  if(idle&&kb<50)release();
   if(kb>200&&Math.abs(kb-was)>20){
     const same=Math.abs(kb-(kbMax||345))<14&&was<50;
     kbMax=kb;try{localStorage.setItem('wkb',kb)}catch(e){}
