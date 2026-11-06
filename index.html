@@ -26,7 +26,7 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:poin
 input,textarea,w-in{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
 header{background:var(--bg);padding:6px 12px 0}
 .top{display:flex;align-items:center;height:48px}
-.ti{font-size:24px;font-weight:900;padding:8px 10px 8px 0;margin-left:8px}
+.ti{font-size:24px;font-weight:900;-webkit-text-stroke:.7px currentColor;padding:8px 10px 8px 0;margin-left:8px}
 .fl{flex:1}
 .pl{width:140px;flex:none}
 nav{display:flex;gap:4px;padding:4px 0 10px;position:relative}
@@ -106,19 +106,19 @@ body{timeline-scope:--pg}
 .db #dd{display:none;color:var(--dg)}
 #dt.one{padding:0 14px;line-height:56px;overflow:hidden}
 .sgw{flex:none;position:relative;z-index:2;background:var(--bg);padding:4px 0 6px}
-.sg{position:relative;display:flex;background:color-mix(in srgb,var(--bg) 94%,#000);--r:14px;border-radius:var(--r);padding:4px}
+.sg{position:relative;display:flex;background:color-mix(in srgb,var(--bg) 93%,#2a3b5c);--r:14px;border-radius:var(--r);padding:4px}
 .sg::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/var(--n));--r:10px;border-radius:var(--r);background:var(--cd);transform:translateX(calc(var(--i)*100%));transition:transform var(--d) var(--e)}
 .sg button{position:relative;flex:1;height:44px;font-weight:700;font-size:16px;color:var(--mu);transition:color var(--d) var(--e)}
 .sg button.on{color:var(--tx)}
-.pl button{height:36px;font-size:15px}
+.pl button,.sgw .sg button{height:36px;font-size:15px}
 .gw.hid{display:none}
 .fd{position:sticky;top:0;height:0;z-index:3}
 .fd~.gw{padding-top:4px}
 .fd::after{content:"";position:absolute;left:0;right:0;top:100%;height:28px;pointer-events:none;background:linear-gradient(to bottom,var(--bg),transparent);opacity:0;transition:opacity var(--d) var(--e)}
 .fd::after{top:0}
 .ps.sc .fd::after{opacity:1}
-.sg.pl{--r:13px}
-.sg.pl::before{--r:9px}
+.sg.pl,.sgw .sg{--r:13px}
+.sg.pl::before,.sgw .sg::before{--r:9px}
 .c.pr{transform:scale(.962);transition:transform .22s cubic-bezier(.3,0,.2,1)}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
@@ -472,7 +472,7 @@ pg.addEventListener('click',async ev=>{
     sg.style.setProperty('--i',gi);
     [...sg.children].forEach((x,k)=>x.classList.toggle('on',k===gi));
     const ws=[...p.querySelectorAll('.gw')],nw=ws[gi],ps=p.querySelector('.ps');
-    const clr=w=>{w.style.position=w.style.top=w.style.left=w.style.width=w.style.pointerEvents='';delete w.dataset.out};
+    const clr=w=>{w.style.position=w.style.top=w.style.left=w.style.width=w.style.pointerEvents=w.style.zIndex='';delete w.dataset.out};
     ws.forEach(w=>{
       if(w.getAnimations)w.getAnimations().forEach(x=>x.cancel());
       if(w.dataset.out){w.classList.add('hid');clr(w)}
@@ -485,12 +485,14 @@ pg.addEventListener('click',async ev=>{
       outs.forEach(w=>{
         const t=w.offsetTop-st,l=w.offsetLeft,wd=w.offsetWidth;
         w.dataset.out=1;w.style.position='absolute';w.style.top=t+'px';w.style.left=l+'px';w.style.width=wd+'px';w.style.pointerEvents='none';
-        const an=w.animate([{opacity:1},{opacity:0}],{duration:220,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
+        w.style.zIndex=0;const an=w.animate([{opacity:1},{opacity:1,offset:.4},{opacity:0}],{duration:360,easing:'linear',fill:'forwards'});
         an.onfinish=()=>{if(w.dataset.out){w.classList.add('hid');clr(w)}};
       });
       nw.classList.remove('hid');
       ps.scrollTop=0;ps.classList.remove('sc');
-      nw.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:340,delay:60,easing:'cubic-bezier(.22,.7,.2,1)',fill:'backwards'});
+      nw.style.position='relative';nw.style.zIndex=1;
+      const na=nw.animate([{opacity:0},{opacity:1}],{duration:300,easing:'cubic-bezier(.33,0,.2,1)'});
+      na.onfinish=na.oncancel=()=>{nw.style.position='';nw.style.zIndex=''};
     }
     return;
   }
@@ -720,7 +722,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106t';
+const BUILD='20261106u';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
