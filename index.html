@@ -85,10 +85,12 @@ body{timeline-scope:--pg}
 .ib2.pls{color:var(--ac)}
 .ib2:active{opacity:.7}
 .bt{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
-.ad{display:flex;margin-top:4px}
-.ad w-in{line-height:52px;flex:1;height:52px;padding:0 16px;font-size:17px;background:var(--cd)}
-.ad button{width:0;height:52px;margin-left:0;padding:0;--r:14px;border-radius:var(--r);background:var(--cd);color:var(--ac);display:flex;align-items:center;justify-content:center;overflow:hidden;opacity:0;transform:scale(.6);visibility:hidden;transition:width var(--d) var(--e),margin-left var(--d) var(--e),opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s linear var(--d)}
-.ad.has button{width:52px;margin-left:8px;opacity:1;transform:none;visibility:visible;transition:width var(--d) var(--e),margin-left var(--d) var(--e),opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s}
+.ad{position:relative;display:flex;margin-top:4px}
+.ad w-in{line-height:52px;flex:1;height:52px;padding:0 22px;--r:26px;font-size:17px;background:var(--cd);transition:padding-right var(--d) var(--e)}
+.ad.has w-in{padding-right:56px}
+.ad button{position:absolute;right:0;top:0;width:52px;height:52px;padding:0;background:none;color:var(--ac);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.6);visibility:hidden;transition:opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s linear var(--d)}
+.ad.has button{opacity:1;transform:none;visibility:visible;transition:opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s}
+.ad.has button:active{opacity:.6}
 #dg{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity var(--d) var(--e)}
 #dg.on{opacity:1;pointer-events:auto}
 #dg.on.hold{pointer-events:none}
@@ -104,10 +106,10 @@ body{timeline-scope:--pg}
 .db #dd{display:none;color:var(--dg)}
 #dt.one{padding:0 14px;line-height:56px;overflow:hidden}
 .sgw{flex:none;position:relative;z-index:2;background:var(--bg);padding:4px 0 6px}
-.sg{position:relative;display:flex;background:var(--cd);--r:14px;border-radius:var(--r);padding:4px}
-.sg::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/var(--n));--r:10px;border-radius:var(--r);background:var(--ac2);transform:translateX(calc(var(--i)*100%));transition:transform var(--d) var(--e)}
+.sg{position:relative;display:flex;background:color-mix(in srgb,var(--bg) 94%,#000);--r:14px;border-radius:var(--r);padding:4px}
+.sg::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/var(--n));--r:10px;border-radius:var(--r);background:var(--cd);transform:translateX(calc(var(--i)*100%));transition:transform var(--d) var(--e)}
 .sg button{position:relative;flex:1;height:44px;font-weight:700;font-size:16px;color:var(--mu);transition:color var(--d) var(--e)}
-.sg button.on{color:var(--ac)}
+.sg button.on{color:var(--tx)}
 .pl button{height:36px;font-size:15px}
 .gw.hid{display:none}
 .fd{position:sticky;top:0;height:0;z-index:3}
@@ -134,7 +136,7 @@ html.kbo #fb{opacity:0}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px;background:var(--cd);--r:28px;border-radius:var(--r)}
 .tl{display:contents}
 #tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
-#wk{grid-column:1;grid-row:2;justify-self:start;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
+#wk{grid-column:1;grid-row:2;justify-self:start;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
 #tr{grid-column:3}
 #ts{grid-column:2;background:var(--ac);color:#fff}
@@ -718,7 +720,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106s';
+const BUILD='20261106t';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
