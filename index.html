@@ -127,8 +127,10 @@ body{timeline-scope:--pg}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
 #tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));z-index:4;filter:drop-shadow(0 3px 12px var(--sh))}
 html{background:var(--cd)}
-#kpt{position:fixed;left:50%;top:0;z-index:5;height:32px;min-width:92px;padding:0 16px;border-radius:16px;background:#fff;color:#000;font-size:15px;font-weight:600;line-height:32px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.2px;box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 2px 6px rgba(0,0,0,.07),0 8px 22px rgba(0,0,0,.13);pointer-events:none;opacity:0;transform:translate3d(-50%,calc(var(--ky,0px) + 6px),0) scale(.94);transition:opacity .22s cubic-bezier(.25,1,.5,1),transform .34s var(--e)}
-#kpt.on{opacity:1;transform:translate3d(-50%,var(--ky,0px),0)}
+#kpt{position:fixed;left:0;top:0;width:0;height:0;z-index:5;pointer-events:none;visibility:hidden;transition:transform .34s var(--e)}
+#kpt.on{visibility:visible}
+#kpt .kb{position:absolute;top:0;background:#fff;border-radius:16px;box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 2px 6px rgba(0,0,0,.07),0 8px 22px rgba(0,0,0,.13)}
+#kpt .kt{position:absolute;top:0;height:32px;line-height:32px;text-align:center;color:#000;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.1px;transform-origin:50% 50%}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
@@ -603,67 +605,46 @@ pg.addEventListener('touchstart',e=>{
   if(e.touches.length!==1)return;
   const xy={x:e.touches[0].clientX,y:e.touches[0].clientY};
   const hf=t.closest&&t.closest('.f');
-  let wi=hf?hf.querySelector('w-in'):t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
-  /* 첫 탭 뒤 목록이 움직여도, 같은 자리를 곧바로 다시 누르면 같은 칸의 두 번째 탭으로 본다 */
-  if(lastTap&&lastTap.el.isConnected&&performance.now()-lastTap.t<360&&Math.hypot(xy.x-lastTap.x,xy.y-lastTap.y)<30)wi=lastTap.el;
-  if(wi&&wi.closest('.ps')&&document.activeElement!==wi){hoTok++;tp={...xy,t:wi}}
-  else if(wi&&wi.closest('.ps')&&wi.matches('.f w-in')){tp={...xy,t:wi,same:1}}
-  else{
-    const b=t.closest&&t.closest('[data-a]');
-    if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b};
-    else if(typing()&&!(t.closest&&t.closest('w-in,.f,button,[data-a],.m label,.sg')))tp={...xy,out:1};
+  const wi=hf?hf.querySelector('w-in'):t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
+  if(wi&&wi.closest('.ps')){
+    /* 키보드가 실제로 떠 있고 이미 커서가 있는 무게·횟수 칸 → 한 번 더 탭 = 지우기 */
+    if(document.activeElement===wi&&kbNow>=50){if(wi.matches('.f w-in'))tp={...xy,t:wi,same:1}}
+    else{hoTok++;tp={...xy,t:wi}}
+    return;
   }
+  const b=t.closest&&t.closest('[data-a]');
+  if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b};
+  else if(typing()&&!(t.closest&&t.closest('w-in,.f,button,[data-a],.m label,.sg')))tp={...xy,out:1};
 },{passive:true});
 pg.addEventListener('touchend',e=>{
   if(!tp)return;const c=e.changedTouches[0],q=tp;tp=null;
-  const m=Math.hypot(c.clientX-q.x,c.clientY-q.y);
-  if(m>8)return;
-  if(q.out||q.b){
-    if(!e.cancelable)return;
-    e.preventDefault();lastTap=null;
-    if(q.out){const a=typing();if(a)a.blur()}else q.b.click();
-    return;
-  }
-  const t=q.t,now=performance.now();
-  const dbl=t.matches('.f w-in')&&lastTap&&lastTap.el===t&&now-lastTap.t<360&&Math.hypot(c.clientX-lastTap.x,c.clientY-lastTap.y)<30;
-  if(!e.cancelable&&!dbl)return;
-  if(e.cancelable)e.preventDefault();
-  lastTap=dbl?null:{el:t,t:now,x:c.clientX,y:c.clientY};
-  if(dbl)clearField(t);
-  if(q.same){caretEnd(t);return}
+  if(Math.hypot(c.clientX-q.x,c.clientY-q.y)>8||!e.cancelable)return;
+  e.preventDefault();
+  if(q.out){const a=typing();if(a)a.blur();return}
+  if(q.b){q.b.click();return}
+  const t=q.t;
+  if(q.same){clearField(t);caretEnd(t);return}
+  /* 커서는 있는데 키보드가 내려가 있던 칸(앱 전환 등): 처음 누른 것처럼 다시 시작 */
+  if(document.activeElement===t){noRest=1;t.blur();noRest=0}
   if(kbNow<50&&DUR){
     /* 키보드가 없을 때: 화면 위쪽의 보이지 않는 칸에 먼저 포커스해 키보드를 올리고(iOS가 화면 전체를 밀지 않음),
-       목록을 부드럽게 옮긴 뒤 실제 칸으로 포커스를 넘긴다 */
+       목록을 옮긴 뒤 키보드 높이가 확인되면 실제 칸으로 포커스를 넘긴다 */
     const im=t.getAttribute('inputmode');kbWant=im||'text';
     if(im)kx.setAttribute('inputmode',im);else kx.removeAttribute('inputmode');
     kx.textContent='';kx.focus({preventScroll:true});
     bring(t,1);handoff(t);
   }else{
-    bring(t,dbl?1:0);
+    bring(t,1);
     t.focus({preventScroll:true});
     caretEnd(t);
   }
 },{passive:false});
-pg.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('.f .hit');if(!h)return;const w=h.parentNode.querySelector('w-in');if(document.activeElement!==w){w.focus({preventScroll:true});bring(w)}caretEnd(w)});
-pg.addEventListener('dblclick',e=>{const h=e.target.closest&&e.target.closest('.f .hit');if(!h)return;const w=h.parentNode.querySelector('w-in');clearField(w);w.focus({preventScroll:true});caretEnd(w)});
-/* 세트 목록 안에서만: 더블탭의 두 번째 탭이 시작되는 순간 iOS 기본 동작을 막는다
-   (목록 전체가 아니라 세트 영역에만 걸어 화면 스와이프·스크롤에는 영향 없음) */
-const dtStart=e=>{
-  if(!lastTap||e.touches.length!==1||!lastTap.el.isConnected)return;
-  const x=e.touches[0].clientX,y=e.touches[0].clientY;
-  if(performance.now()-lastTap.t<360&&Math.hypot(x-lastTap.x,y-lastTap.y)<30&&e.cancelable)e.preventDefault();
-};
-function armDt(r){
-  if(!r.querySelectorAll)return;
-  const a=r.matches&&r.matches('.sl')?[r]:[...r.querySelectorAll('.sl')];
-  a.forEach(n=>{if(!n._dt){n._dt=1;n.addEventListener('touchstart',dtStart,{passive:false})}});
-}
-/* 무게·횟수 칸 더블탭: 내용을 지우고(지우기 전 값은 흐린 글자로 남김) 커서를 둔다 */
-let lastTap=null;
+/* 마우스(데스크톱): 클릭하면 커서, 커서가 있는 칸을 다시 클릭하면 지우기 */
+pg.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('.f .hit');if(!h)return;const w=h.parentNode.querySelector('w-in');if(document.activeElement===w)clearField(w);else{w.focus({preventScroll:true});bring(w)}caretEnd(w)});
+/* 커서가 있는 무게·횟수 칸을 한 번 더 탭: 내용을 지우고(지우기 전 값은 흐린 글자로 남김) 커서를 둔다 */
 function clearField(t){
-  if(t.value!=='')t.dataset.fv=t.value;
   if(t.value==='')return;
-  t.textContent='';t._dirty=1;
+  t.dataset.fv=t.value;t.textContent='';t._dirty=1;
   t.dispatchEvent(new Event('input',{bubbles:true}));
 }
 const kx=document.createElement('w-in');kx.id='kx';
@@ -677,11 +658,12 @@ function handoff(t){
     const st=p?p.scrollTop:0;
     still=Math.abs(st-last)<.5?still+1:0;last=st;
     const el=performance.now()-t0;
-    if(kbNow>50&&vv&&el<1200){
+    if(kbNow<50&&el<900){requestAnimationFrame(step);return}
+    if(kbNow>=50&&vv&&el<1400){
       const r=t.getBoundingClientRect(),kt=vv.offsetTop+vv.height-ACC;
-      if(r.bottom>kt-4){if(!t._fix){t._fix=1;bring(t,1)}still=0;requestAnimationFrame(step);return}
+      if(r.bottom>kt-4||r.top<p.getBoundingClientRect().top){if(!t._fix){t._fix=1;bring(t,1)}still=0;requestAnimationFrame(step);return}
     }
-    if(still<4&&el<700){requestAnimationFrame(step);return}
+    if(still<4&&el<1400){requestAnimationFrame(step);return}
     t._fix=0;
     const extra=kx.textContent;
     t.focus({preventScroll:true});caretEnd(t);
@@ -857,7 +839,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106zb';
+const BUILD='20261106zc';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -890,7 +872,7 @@ $('#tr').onclick=()=>{T={acc:0,st:0};tsave();tshow()};
 /* 세트 기록이 끝나면(무게·횟수 칸에서 빠져나오면) 휴식 타이머를 0부터 다시 시작.
    값을 안 바꿔도, 수동으로 멈추거나 리셋했어도 동일. 같은 세트 안에서 칸을 옮겨 다니는 동안은 기다린다. */
 let noRest=0;
-function restGo(){T={acc:0,st:Date.now()};tsave();tshow()}
+function restGo(){T={acc:0,st:Date.now()};tsave();tshow();try{kpT.textContent='00:00'}catch(e){}}
 document.addEventListener('focusout',e=>{
   const t=e.target;if(!t.matches||!t.matches('.f w-in')||noRest)return;
   setTimeout(()=>{
@@ -928,6 +910,7 @@ $('#wk').onclick=async()=>{
 };
 setInterval(tshow,250);tshow();
 addEventListener('visibilitychange',tshow);
+addEventListener('visibilitychange',()=>{if(document.hidden){const a=document.activeElement;if(a&&a.matches&&a.matches('w-in')&&a.closest('.ps')){noRest=1;a.blur();noRest=0}}});
 const unpin=()=>{if(document.hidden)return;const a=document.activeElement;if(a&&a.matches&&a.matches('w-in,input,textarea'))return;document.body.style.transform='';kbNow=0;root.style.setProperty('--kb','0px');root.classList.remove('kbo')};
 addEventListener('visibilitychange',()=>setTimeout(unpin,0));addEventListener('pageshow',unpin);
 /* 키보드: 타이머는 하단에 고정, 입력칸은 가려지지 않게 */
@@ -941,16 +924,50 @@ const ACC=60;
 /* 키보드 위 타이머 알약이 차지하는 높이(간격 8 + 높이 32 + 여유) */
 const KPH=0;
 const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
-const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');document.body.appendChild(kpt);
+const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');kpt.innerHTML='<i class="kb"></i><b class="kt"></b>';document.body.appendChild(kpt);
+const kpB=kpt.firstChild,kpT=kpt.lastChild,KW=96,KH=32,KD=300;
+let kpOn=false,kpY=0;
+const kpTarget=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH);
+/* 하단 타이머 카드와 숫자의 현재 위치(키보드 위 타이머 기준 좌표) */
+function twGeo(){
+  const f=$('#tw .tf').getBoundingClientRect(),bt=document.body.getBoundingClientRect().top;
+  const r=document.createRange();r.selectNodeContents($('#tm'));const t=r.getBoundingClientRect();
+  return{x:f.left,y:f.top-bt-kpY,w:f.width,h:f.height,cx:t.left+t.width/2,cy:t.top-bt-kpY+t.height/2,s:parseFloat(getComputedStyle($('#tm')).fontSize)/15};
+}
+function kpShow(){
+  kpOn=true;kpY=kpTarget();
+  kpt.style.transition='none';kpt.style.transform='translate3d(0,'+kpY+'px,0)';kpt.getBoundingClientRect();kpt.style.transition='';
+  const x=Math.round((innerWidth-KW)/2);
+  Object.assign(kpB.style,{left:x+'px',width:KW+'px',height:KH+'px'});Object.assign(kpT.style,{left:x+'px',width:KW+'px'});
+  [kpt,kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
+  kpt.classList.add('on');
+  if(!DUR)return;
+  const g=twGeo(),cx=x+KW/2,cy=KH/2;
+  kpB.animate([{left:g.x+'px',top:g.y+'px',width:g.w+'px',height:g.h+'px',borderRadius:'28px'},{left:x+'px',top:'0px',width:KW+'px',height:KH+'px',borderRadius:'16px'}],{duration:KD,easing:EZ});
+  kpT.animate([{transform:'translate('+(g.cx-cx)+'px,'+(g.cy-cy)+'px) scale('+g.s+')'},{transform:'none'}],{duration:KD,easing:EZ});
+}
+function kpHide(){
+  kpOn=false;
+  {const sc=Math.floor(tnow()/1000);kpT.textContent=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0')}
+  if(!DUR){kpt.classList.remove('on');return}
+  const cb=getComputedStyle(kpB),ct=getComputedStyle(kpT).transform;
+  const from={left:cb.left,top:cb.top,width:cb.width,height:cb.height,borderRadius:cb.borderRadius};
+  [kpt,kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
+  const g=twGeo(),x=parseFloat(kpT.style.left),cx=x+KW/2,cy=KH/2;
+  kpB.animate([from,{left:g.x+'px',top:g.y+'px',width:g.w+'px',height:g.h+'px',borderRadius:'28px'}],{duration:KD,easing:EZ,fill:'forwards'});
+  kpT.animate([{transform:ct==='none'?'none':ct},{transform:'translate('+(g.cx-cx)+'px,'+(g.cy-cy)+'px) scale('+g.s+')'}],{duration:KD,easing:EZ,fill:'forwards'});
+  const f=kpt.animate([{opacity:1},{opacity:1,offset:.5},{opacity:0}],{duration:KD,easing:'linear',fill:'forwards'});
+  f.onfinish=()=>{if(kpOn)return;kpt.classList.remove('on');[kpt,kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()))};
+}
 function kpill(){
   const a=document.activeElement,ed=a&&(a.id==='kx'||(a.matches&&a.matches('w-in')&&a.closest('.ps')));
-  const on=!!(vv&&ed&&kbNow>50&&(T.st||T.acc>0));
+  const on=!!(ed&&(T.st||T.acc>0)&&(kbNow>50||root.classList.contains('kbo')));
   if(on){
-    const y=Math.round(vv.height-2-32);if(kpt._y!==y){kpt._y=y;kpt.style.setProperty('--ky',y+'px')}
     const sc=Math.floor(tnow()/1000),tx=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');
-    if(kpt.textContent!==tx)kpt.textContent=tx;
-  }
-  if(kpt.classList.contains('on')!==on)kpt.classList.toggle('on',on);
+    if(kpT.textContent!==tx)kpT.textContent=tx;
+    if(!kpOn)kpShow();
+    else{const y=kpTarget();if(y!==kpY){kpY=y;kpt.style.transform='translate3d(0,'+y+'px,0)'}}
+  }else if(kpOn)kpHide();
 }
 setInterval(kpill,250);
 const root=document.documentElement;
@@ -1081,8 +1098,8 @@ function sqobs(r){
   if(r.matches&&r.matches(SQ))sqro.observe(r);
   r.querySelectorAll(SQ).forEach(n=>sqro.observe(n));
 }
-sqobs(document);armDt(document);
-new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1){sqobs(n);armDt(n)}}))).observe(document.body,{childList:true,subtree:true});
+sqobs(document);
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1){sqobs(n)}}))).observe(document.body,{childList:true,subtree:true});
 </script>
 </body>
 </html>
