@@ -37,7 +37,7 @@ body{timeline-scope:--pg}
 @keyframes tbm{from{transform:translate3d(var(--x0),0,0)}to{transform:translate3d(var(--x1),0,0)}}
 #tbi.sd{animation:tbm 1s linear both;animation-timeline:--pg}
 #tbi{position:absolute;left:0;top:4px;height:46px;width:0;--r:12px;border-radius:var(--r);background:var(--ac);will-change:transform;pointer-events:none;transition:transform var(--d) var(--e)}
-#pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+#pg{position:relative;z-index:1;flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
 .ps::-webkit-scrollbar{display:none;width:0;height:0}
@@ -580,13 +580,18 @@ pg.addEventListener('touchstart',e=>{
   const xy={x:e.touches[0].clientX,y:e.touches[0].clientY};
   const wi=t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
   if(wi&&wi.closest('.ps')&&document.activeElement!==wi){hoTok++;tp={...xy,t:wi}}
-  else{const b=t.closest&&t.closest('[data-a]');if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b}}
+  else{
+    const b=t.closest&&t.closest('[data-a]');
+    if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b};
+    else if(typing()&&!(t.closest&&t.closest('w-in,button,[data-a],.m label,.sg')))tp={...xy,out:1};
+  }
 },{passive:true});
 pg.addEventListener('touchend',e=>{
   if(!tp)return;const c=e.changedTouches[0],q=tp;tp=null;
   const m=Math.hypot(c.clientX-q.x,c.clientY-q.y);
   if(m>8||!e.cancelable)return;
   e.preventDefault();
+  if(q.out){const a=typing();if(a)a.blur();return}
   if(q.b){q.b.click();return}
   const t=q.t;
   if(kbNow<50&&DUR){
@@ -674,14 +679,28 @@ document.addEventListener('touchend',e=>{
 document.addEventListener('mouseup',()=>{if(wantDt&&!('ontouchend' in window)){const f=wantDt;wantDt=null;f()}},true);
 pg.addEventListener('pointercancel',lup);
 function markPl(){const pl=$('#pl');pl.style.setProperty('--i',S.loc);[...pl.children].forEach((b,i)=>b.classList.toggle('on',i===S.loc))}
+/* 회사/집 전환: 이전 화면을 잠시 남겨 두고 새 화면이 제자리에서 서서히 덮는다 */
+function snap(){
+  const pn=panels[cur];if(!pn||!DUR)return null;
+  const r=pg.getBoundingClientRect(),o=document.createElement('div');
+  o.style.cssText='position:fixed;z-index:0;pointer-events:none;overflow:hidden;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px';
+  const c=pn.cloneNode(true);c.style.cssText='width:100%;height:100%;display:flex;flex-direction:column;padding:0 12px';
+  o.appendChild(c);document.body.appendChild(o);
+  const a=c.querySelector('.ps'),b=pn.querySelector('.ps');if(a&&b)a.scrollTop=b.scrollTop;
+  return o;
+}
 $('#pl').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
   const l=+b.dataset.l;if(l===S.loc)return;
+  const ov=snap();
   S.loc=l;save();markPl();
   tabGo=cur;goT=performance.now();{const t=$('#tbi');if(t){geo();freeze(t);setX(t,xAt(cur),0)}}build();
   requestAnimationFrame(()=>requestAnimationFrame(()=>{pg.scrollLeft=cur*pg.clientWidth;if(tabGo===cur)tabGo=-1;mark()}));
   panels.forEach(p=>{p.querySelector('.ps').scrollTop=0});
-  if(DUR)pg.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:DUR,easing:EZ});
+  if(DUR){
+    pg.animate([{opacity:0},{opacity:1}],{duration:300,easing:'cubic-bezier(.33,0,.2,1)'});
+    if(ov){const a=ov.animate([{opacity:1},{opacity:1,offset:.4},{opacity:0}],{duration:360,easing:'linear',fill:'forwards'});a.onfinish=a.oncancel=()=>ov.remove()}
+  }
 };
 /* 백업: 파일 앱(iCloud Drive)에 저장 / 불러오기 */
 const stamp=()=>{const d=new Date(Date.now()-new Date().getTimezoneOffset()*6e4);return d.toISOString().slice(0,16).replace('T','_').replace(':','')};
@@ -722,7 +741,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106u';
+const BUILD='20261106v';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
