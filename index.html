@@ -130,7 +130,11 @@ html{background:var(--cd)}
 #kpt{position:fixed;left:0;top:0;width:0;height:0;z-index:5;pointer-events:none;visibility:hidden;transition:transform .34s var(--e)}
 #kpt.on{visibility:visible}
 #kpt .kb{position:absolute;top:0;background:#fff;border-radius:16px;box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 2px 6px rgba(0,0,0,.07),0 8px 22px rgba(0,0,0,.13)}
-#kpt .kt{position:absolute;top:0;height:32px;line-height:32px;text-align:center;color:#000;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.1px;transform-origin:50% 50%}
+#kpt .kt{position:absolute;left:0;top:0;white-space:nowrap;color:#000;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums;transform-origin:0 0}
+/* 키보드 위 타이머가 하단 타이머로 돌아오는 동안 진짜 하단 타이머는 숨겨 두었다가 도착하는 순간 넘겨받는다 */
+html.kmh #tw{opacity:0!important;transition:none!important}
+#tw.pop .tf .ib2,#tw.pop #wk{animation:twin .2s cubic-bezier(.25,1,.5,1)}
+@keyframes twin{from{opacity:0}}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
@@ -839,7 +843,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106zc';
+const BUILD='20261106zd';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -925,40 +929,56 @@ const ACC=60;
 const KPH=0;
 const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
 const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');kpt.innerHTML='<i class="kb"></i><b class="kt"></b>';document.body.appendChild(kpt);
-const kpB=kpt.firstChild,kpT=kpt.lastChild,KW=96,KH=32,KD=300;
-let kpOn=false,kpY=0;
+const kpB=kpt.firstChild,kpT=kpt.lastChild,KW=96,KH=32,KD=320,KS=15/46;
+let kpOn=false,kpY=0,TWG=null;
 const kpTarget=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH);
-/* 하단 타이머 카드와 숫자의 현재 위치(키보드 위 타이머 기준 좌표) */
-function twGeo(){
+/* 하단 타이머 카드·숫자의 '키보드가 없을 때' 위치를 기억(키보드가 있을 땐 화면이 움직여 믿을 수 없음) */
+function twMeasure(){
+  if(kpOn||kbNow>=50||root.classList.contains('kbo')||root.classList.contains('kmh'))return;
   const f=$('#tw .tf').getBoundingClientRect(),bt=document.body.getBoundingClientRect().top;
   const r=document.createRange();r.selectNodeContents($('#tm'));const t=r.getBoundingClientRect();
-  return{x:f.left,y:f.top-bt-kpY,w:f.width,h:f.height,cx:t.left+t.width/2,cy:t.top-bt-kpY+t.height/2,s:parseFloat(getComputedStyle($('#tm')).fontSize)/15};
+  if(f.width&&t.width)TWG={x:f.left,y:f.top-bt,w:f.width,h:f.height,tx:t.left,ty:t.top-bt};
 }
+/* 키보드 위 알약 모양(카드 상대 좌표): 숫자는 46px 글자를 15px 크기로 줄여 가운데 */
+function kpPill(){
+  const x=Math.round((innerWidth-KW)/2),tw=kpT.offsetWidth*KS,th=kpT.offsetHeight*KS;
+  return{b:{left:x+'px',top:'0px',width:KW+'px',height:KH+'px',borderRadius:'16px'},t:'translate('+(x+(KW-tw)/2)+'px,'+((KH-th)/2)+'px) scale('+KS+')'};
+}
+function kpCard(){
+  const g=TWG,dy=-kpY;
+  return{b:{left:g.x+'px',top:(g.y+dy)+'px',width:g.w+'px',height:g.h+'px',borderRadius:'28px'},t:'translate('+g.tx+'px,'+(g.ty+dy)+'px) scale(1)'};
+}
+function kpSet(st){Object.assign(kpB.style,st.b);kpT.style.transform=st.t}
 function kpShow(){
-  kpOn=true;kpY=kpTarget();
+  twMeasure();kpOn=true;kpY=kpTarget();
+  [kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
   kpt.style.transition='none';kpt.style.transform='translate3d(0,'+kpY+'px,0)';kpt.getBoundingClientRect();kpt.style.transition='';
-  const x=Math.round((innerWidth-KW)/2);
-  Object.assign(kpB.style,{left:x+'px',width:KW+'px',height:KH+'px'});Object.assign(kpT.style,{left:x+'px',width:KW+'px'});
-  [kpt,kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
-  kpt.classList.add('on');
-  if(!DUR)return;
-  const g=twGeo(),cx=x+KW/2,cy=KH/2;
-  kpB.animate([{left:g.x+'px',top:g.y+'px',width:g.w+'px',height:g.h+'px',borderRadius:'28px'},{left:x+'px',top:'0px',width:KW+'px',height:KH+'px',borderRadius:'16px'}],{duration:KD,easing:EZ});
-  kpT.animate([{transform:'translate('+(g.cx-cx)+'px,'+(g.cy-cy)+'px) scale('+g.s+')'},{transform:'none'}],{duration:KD,easing:EZ});
+  const P=kpPill();kpSet(P);
+  root.classList.add('kmh');kpt.classList.add('on');
+  if(!DUR||!TWG)return;
+  /* 하단 타이머와 똑같은 모습에서 시작해 작아지며 키보드 위로 */
+  const C=kpCard();
+  kpB.animate([C.b,P.b],{duration:KD,easing:EZ});
+  kpT.animate([{transform:C.t},{transform:P.t}],{duration:KD,easing:EZ});
 }
 function kpHide(){
   kpOn=false;
-  {const sc=Math.floor(tnow()/1000);kpT.textContent=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0')}
-  if(!DUR){kpt.classList.remove('on');return}
-  const cb=getComputedStyle(kpB),ct=getComputedStyle(kpT).transform;
-  const from={left:cb.left,top:cb.top,width:cb.width,height:cb.height,borderRadius:cb.borderRadius};
-  [kpt,kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
-  const g=twGeo(),x=parseFloat(kpT.style.left),cx=x+KW/2,cy=KH/2;
-  kpB.animate([from,{left:g.x+'px',top:g.y+'px',width:g.w+'px',height:g.h+'px',borderRadius:'28px'}],{duration:KD,easing:EZ,fill:'forwards'});
-  kpT.animate([{transform:ct==='none'?'none':ct},{transform:'translate('+(g.cx-cx)+'px,'+(g.cy-cy)+'px) scale('+g.s+')'}],{duration:KD,easing:EZ,fill:'forwards'});
-  const f=kpt.animate([{opacity:1},{opacity:1,offset:.5},{opacity:0}],{duration:KD,easing:'linear',fill:'forwards'});
-  f.onfinish=()=>{if(kpOn)return;kpt.classList.remove('on');[kpt,kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()))};
+  const done=()=>{
+    if(kpOn)return;
+    const tw=$('#tw');tw.style.transition='none';root.classList.remove('kmh');tw.getBoundingClientRect();tw.style.transition='';
+    tw.classList.remove('pop');tw.getBoundingClientRect();tw.classList.add('pop');setTimeout(()=>tw.classList.remove('pop'),260);
+    kpt.classList.remove('on');[kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
+  };
+  if(!DUR||!TWG){done();return}
+  const cb=getComputedStyle(kpB),from={b:{left:cb.left,top:cb.top,width:cb.width,height:cb.height,borderRadius:cb.borderRadius},t:getComputedStyle(kpT).transform};
+  [kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
+  /* 알약이 커지며 하단 타이머 자리·크기로 정확히 돌아간 순간, 진짜 하단 타이머로 넘긴다 */
+  const C=kpCard();
+  kpB.animate([from.b,C.b],{duration:KD,easing:EZ,fill:'forwards'});
+  const a=kpT.animate([{transform:from.t==='none'?'none':from.t},{transform:C.t}],{duration:KD,easing:EZ,fill:'forwards'});
+  a.onfinish=done;
 }
+setTimeout(twMeasure,300);addEventListener('resize',()=>setTimeout(twMeasure,300));
 function kpill(){
   const a=document.activeElement,ed=a&&(a.id==='kx'||(a.matches&&a.matches('w-in')&&a.closest('.ps')));
   const on=!!(ed&&(T.st||T.acc>0)&&(kbNow>50||root.classList.contains('kbo')));
@@ -967,7 +987,7 @@ function kpill(){
     if(kpT.textContent!==tx)kpT.textContent=tx;
     if(!kpOn)kpShow();
     else{const y=kpTarget();if(y!==kpY){kpY=y;kpt.style.transform='translate3d(0,'+y+'px,0)'}}
-  }else if(kpOn)kpHide();
+  }else{if(kpOn)kpHide();else twMeasure()}
 }
 setInterval(kpill,250);
 const root=document.documentElement;
