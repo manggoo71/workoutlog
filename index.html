@@ -37,7 +37,7 @@ nav button.on{background:var(--ac);color:#fff}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
 .ps{position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + max(var(--kb,0px),var(--kp,0px)))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
-.c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .5s cubic-bezier(.34,1.45,.64,1)}
+.c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .34s cubic-bezier(.3,0,.2,1)}
 .c.rm{pointer-events:none}
 .h{display:flex;align-items:center;gap:6px;padding:10px 10px 0 16px;min-height:64px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .t{flex:1;min-width:0}
@@ -114,6 +114,7 @@ w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;curs
 w-in.ch{caret-color:transparent}
 w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
 body{overflow:visible}
+body::after{content:"";position:fixed;left:0;right:0;top:100%;height:200px;background:var(--cd);pointer-events:none}
 #tw::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:160px;background:var(--cd);pointer-events:none}
 #tw{transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #tw{opacity:0;pointer-events:none}
@@ -323,14 +324,28 @@ function build(){
   requestAnimationFrame(()=>{pg.scrollLeft=cur*pg.clientWidth;building=0;mark()});
 }
 function mark(){[...$('#tb').children].forEach((b,i)=>{if(b.classList.contains('on')!==(i===cur))b.classList.toggle('on',i===cur)})}
-$('#tb').onclick=e=>{const b=e.target.closest('button');if(b)pg.scrollTo({left:b.dataset.i*pg.clientWidth,behavior:'smooth'})};
+let tabMove=0,tabT=0,navT=0;
+/* 입력 중에 부위 탭을 누르면: 키보드 정리(여백·스크롤 복귀)는 탭 이동이 끝난 뒤 조용히 처리 */
+$('#tb').addEventListener('pointerdown',()=>{
+  navT=performance.now();
+  const a=document.activeElement;
+  if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.pn')){tabMove=1;clearTimeout(tabT);tabT=setTimeout(()=>{tabMove=0;hardRelease()},900)}
+});
+$('#tb').onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;
+  navT=performance.now();
+  const a=document.activeElement;
+  if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.pn')){tabMove=1;clearTimeout(tabT);a.blur();tabT=setTimeout(()=>{tabMove=0;hardRelease()},700)}
+  root.classList.remove('kbo');
+  pg.scrollTo({left:b.dataset.i*pg.clientWidth,behavior:'smooth'});
+};
 pg.addEventListener('scroll',()=>{
   if(building)return;
   const i=Math.round(pg.scrollLeft/pg.clientWidth);
   if(i!==cur&&i>=0&&i<S.tabs.length){cur=i;S.t=i;lsave()}
   mark();
 },{passive:true});
-function resync(){if(building)return;const x=cur*pg.clientWidth;if(Math.abs(pg.scrollLeft-x)>2)pg.scrollLeft=x;mark()}
+function resync(){if(building||performance.now()-navT<900)return;const x=cur*pg.clientWidth;if(Math.abs(pg.scrollLeft-x)>2)pg.scrollLeft=x;mark()}
 addEventListener('resize',resync);addEventListener('pageshow',resync);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)resync()});
 
@@ -423,8 +438,9 @@ pg.addEventListener('click',async ev=>{
     if(DUR){
       /* 짧게 탭해도 눌렸다가 탄력 있게 돌아오는 느낌이 보이도록 */
       const m=getComputedStyle(c).transform,from=m&&m!=='none'?m:'none';
-      c.classList.remove('pr');
-      c.animate([{transform:from},{transform:'scale(.955)',offset:.3,easing:'cubic-bezier(.3,0,.4,1)'},{transform:'scale(1.008)',offset:.72,easing:'cubic-bezier(.3,0,.5,1)'},{transform:'scale(1)'}],{duration:520});
+      c.style.transition='none';c.classList.remove('pr');
+      const an=c.animate([{transform:from},{transform:'scale(.958)',offset:.32,easing:'cubic-bezier(.3,0,.2,1)'},{transform:'scale(1)'}],{duration:DUR,easing:'linear'});
+      an.onfinish=an.oncancel=()=>{c.style.transition=''};
     }
     
     c.classList.toggle('o',open);e.o=open?1:0;save();
@@ -626,7 +642,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106i';
+const BUILD='20261106j';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -689,6 +705,11 @@ function smoothTo(p,to){
 const curPs=()=>{const pn=panels&&panels[cur];return pn&&pn.querySelector('.ps')};
 let idle=false,idleT=0,relRaf=0;
 /* 키보드가 내려가면: 남는 여백만큼 먼저 부드럽게 올려 놓은 뒤 여백을 걷어낸다(순간이동 없음) */
+function hardRelease(){
+  idle=false;clearTimeout(idleT);cancelAnimationFrame(relRaf);
+  const a=document.activeElement;if(a&&a.matches&&a.matches('w-in,input,textarea'))return;
+  root.style.removeProperty('--kp');root.style.setProperty('--kb','0px');root.classList.remove('kbo');
+}
 function release(){
   idle=false;clearTimeout(idleT);cancelAnimationFrame(relRaf);
   root.classList.remove('kbo');
@@ -744,6 +765,7 @@ document.addEventListener('focusout',e=>{
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
     root.classList.remove('kbo');
+    if(tabMove)return;
     release();
   },0);
 },true);
@@ -760,7 +782,7 @@ function pin(){
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.ps'))a.blur();
     dkSet(0);
-    release();
+    if(!tabMove)release();
   }else if(idle&&kb<50)release();
   if(kb>200&&Math.abs(kb-was)>20){
     const same=Math.abs(kb-(kbMax||345))<14&&was<50;
