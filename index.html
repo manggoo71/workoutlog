@@ -32,7 +32,7 @@ header{background:var(--bg);padding:6px 12px 0}
 nav{display:flex;gap:4px;padding:4px 0 10px;position:relative}
 nav button{flex:1;height:46px;--r:12px;border-radius:var(--r);font-weight:700;font-size:16px;color:var(--mu);position:relative;z-index:1;transition:color .28s cubic-bezier(.25,1,.5,1)}
 nav button.on{color:#fff}
-#tbi{position:absolute;left:0;top:4px;height:46px;width:0;--r:12px;border-radius:var(--r);background:var(--ac);will-change:transform;pointer-events:none}
+#tbi{position:absolute;left:0;top:4px;height:46px;width:0;--r:12px;border-radius:var(--r);background:var(--ac);will-change:transform;pointer-events:none;transition:transform var(--d) var(--e)}
 #pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
@@ -110,7 +110,7 @@ nav button.on{color:#fff}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
-#tw{position:absolute;left:12px;right:12px;bottom:max(14px,calc(env(safe-area-inset-bottom,0px) - 10px));z-index:4;filter:drop-shadow(0 2px 12px var(--sh))}
+#tw{position:absolute;left:8px;right:8px;bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));z-index:4;filter:drop-shadow(0 -1px 10px var(--sh))}
 html{background:var(--cd)}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
@@ -118,6 +118,8 @@ w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-
 body{overflow:visible}
 #tw{transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #tw{opacity:0;pointer-events:none}
+#fb{position:absolute;left:0;right:0;bottom:0;height:calc(var(--pb,124px) + 8px);z-index:3;pointer-events:none;background:linear-gradient(to top,var(--bg) 0%,var(--bg) 42%,color-mix(in srgb,var(--bg) 0%,transparent) 100%);transition:opacity .22s cubic-bezier(.25,1,.5,1)}
+html.kbo #fb{opacity:0}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px;background:var(--cd);--r:28px;border-radius:var(--r)}
 .tl{display:contents}
 #tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
@@ -144,6 +146,7 @@ html.kbo #tw{opacity:0;pointer-events:none}
   <nav id="tb"></nav>
 </header>
 <main id="pg"></main>
+<div id="fb"></div>
 <div id="tw"><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk">운동 시작</button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
 <div id="dg"><div class="sh"><p id="dm"></p><div id="dx"></div><textarea id="dt"></textarea><div class="db"><button id="dd"></button><button id="dc">취소</button><button id="dk">확인</button></div></div></div>
 <script>
@@ -322,16 +325,20 @@ function build(){
   building=1;pg.scrollLeft=cur*pg.clientWidth;mark();
   requestAnimationFrame(()=>{pg.scrollLeft=cur*pg.clientWidth;building=0;mark()});
 }
-function mark(){[...$('#tb').querySelectorAll('button')].forEach((b,i)=>{if(b.classList.contains('on')!==(i===cur))b.classList.toggle('on',i===cur)});ind()}
+function mark(noInd){[...$('#tb').querySelectorAll('button')].forEach((b,i)=>{if(b.classList.contains('on')!==(i===(tabGo>=0?tabGo:cur)))b.classList.toggle('on',i===(tabGo>=0?tabGo:cur))});if(tabGo<0&&!noInd)ind()}
 /* 선택 표시: 페이지가 넘어가는 만큼 같이 미끄러진다(스와이프·탭 모두) */
-function ind(){
+function ind(follow){
   const t=$('#tbi'),bs=$('#tb').querySelectorAll('button');if(!t||!bs.length)return;
-  const w=pg.clientWidth||1,pos=Math.max(0,Math.min(bs.length-1,building?cur:pg.scrollLeft/w));
-  const i=Math.floor(pos),j=Math.min(bs.length-1,i+1),k=pos-i,a=bs[i],b=bs[j];
-  const x=a.offsetLeft+(b.offsetLeft-a.offsetLeft)*k,bw=a.offsetWidth+(b.offsetWidth-a.offsetWidth)*k;
-  t.style.width=bw+'px';t.style.transform='translate3d('+x+'px,0,0)';
+  const bw=bs[0].offsetWidth,step=bs.length>1?bs[1].offsetLeft-bs[0].offsetLeft:bw,x0=bs[0].offsetLeft;
+  if(t._bw!==bw){t._bw=bw;t.style.width=bw+'px'}
+  let pos;
+  if(follow){pos=Math.max(0,Math.min(bs.length-1,pg.scrollLeft/(pg.clientWidth||1)));t.style.transition='none'}
+  else{pos=cur;t.style.transition=''}
+  const x=Math.round((x0+step*pos)*2)/2;
+  if(t._x!==x){t._x=x;t.style.transform='translate3d('+x+'px,0,0)'}
 }
-let tabMove=0,tabT=0,navT=0;
+
+let tabMove=0,tabT=0,navT=0,tabGo=-1,goT=0;
 /* 입력 중에 부위 탭을 누르면: 키보드 정리(여백·스크롤 복귀)는 탭 이동이 끝난 뒤 조용히 처리 */
 $('#tb').addEventListener('pointerdown',()=>{
   navT=performance.now();
@@ -344,11 +351,14 @@ $('#tb').onclick=e=>{
   const a=document.activeElement;
   if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.pn')){tabMove=1;clearTimeout(tabT);a.blur();tabT=setTimeout(()=>{tabMove=0;hardRelease()},700)}
   root.classList.remove('kbo');
+  tabGo=+b.dataset.i;goT=performance.now();
+  const t=$('#tbi');if(t){t.style.transition='';const bs=$('#tb').querySelectorAll('button'),x=Math.round((bs[0].offsetLeft+(bs.length>1?bs[1].offsetLeft-bs[0].offsetLeft:0)*tabGo)*2)/2;t._x=x;t.style.transform='translate3d('+x+'px,0,0)'}
+  mark();
   pg.scrollTo({left:b.dataset.i*pg.clientWidth,behavior:'smooth'});
 };
 pg.addEventListener('scroll',()=>{
   if(building)return;
-  ind();
+  if(tabGo<0||performance.now()-goT>900){tabGo=-1;ind(1)}
   if(!tabMove&&Math.abs(pg.scrollLeft-cur*pg.clientWidth)>24){
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.pn')){
@@ -358,7 +368,7 @@ pg.addEventListener('scroll',()=>{
   }
   const i=Math.round(pg.scrollLeft/pg.clientWidth);
   if(i!==cur&&i>=0&&i<S.tabs.length){cur=i;S.t=i;lsave()}
-  mark();
+  mark(1);
 },{passive:true});
 function resync(){if(building||performance.now()-navT<900)return;const x=cur*pg.clientWidth;if(Math.abs(pg.scrollLeft-x)>2)pg.scrollLeft=x;mark()}
 addEventListener('resize',resync);addEventListener('pageshow',resync);
@@ -661,7 +671,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106n';
+const BUILD='20261106o';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
