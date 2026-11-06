@@ -127,13 +127,13 @@ body{timeline-scope:--pg}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
 #tw{--tg:max(8px,calc(env(safe-area-inset-bottom,0px) - 16px));position:absolute;left:var(--tg);right:var(--tg);bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 6px));z-index:4;filter:drop-shadow(0 3px 12px var(--sh))}
 html{background:var(--cd)}
-#kpt{position:fixed;left:0;top:0;width:0;height:0;z-index:5;pointer-events:none;visibility:hidden;transition:transform .34s var(--e)}
+#kpt{position:fixed;left:0;top:0;width:0;height:0;z-index:5;pointer-events:none;visibility:hidden;transition:transform .46s cubic-bezier(.45,.05,.2,1)}
 #kpt.on{visibility:visible}
 #kpt .kb{position:absolute;top:0;background:#fff;border-radius:16px;box-shadow:0 0 0 .5px rgba(0,0,0,.05),0 2px 6px rgba(0,0,0,.07),0 8px 22px rgba(0,0,0,.13)}
 #kpt .kt{position:absolute;left:0;top:0;white-space:nowrap;color:#000;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums;transform-origin:0 0}
 /* 키보드 위 타이머가 하단 타이머로 돌아오는 동안 진짜 하단 타이머는 숨겨 두었다가 도착하는 순간 넘겨받는다 */
 html.kmh #tw{opacity:0!important;transition:none!important}
-#tw.pop .tf .ib2,#tw.pop #wk{animation:twin .2s cubic-bezier(.25,1,.5,1)}
+#tw.pop .tf .ib2,#tw.pop #wk{animation:twin .32s cubic-bezier(.33,0,.2,1)}
 @keyframes twin{from{opacity:0}}
 w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
 w-in.ch{caret-color:transparent}
@@ -843,7 +843,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106zd';
+const BUILD='20261106ze';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -929,7 +929,9 @@ const ACC=60;
 const KPH=0;
 const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
 const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');kpt.innerHTML='<i class="kb"></i><b class="kt"></b>';document.body.appendChild(kpt);
-const kpB=kpt.firstChild,kpT=kpt.lastChild,KW=96,KH=32,KD=320,KS=15/46;
+const kpB=kpt.firstChild,kpT=kpt.lastChild,KW=96,KH=32,KD=460,KS=15/46;
+/* 큰 타이머 ↔ 작은 타이머: 천천히 출발해 부드럽게 멈추는 곡선 */
+const KE='cubic-bezier(.45,.05,.2,1)';
 let kpOn=false,kpY=0,TWG=null;
 const kpTarget=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH);
 /* 하단 타이머 카드·숫자의 '키보드가 없을 때' 위치를 기억(키보드가 있을 땐 화면이 움직여 믿을 수 없음) */
@@ -958,15 +960,15 @@ function kpShow(){
   if(!DUR||!TWG)return;
   /* 하단 타이머와 똑같은 모습에서 시작해 작아지며 키보드 위로 */
   const C=kpCard();
-  kpB.animate([C.b,P.b],{duration:KD,easing:EZ});
-  kpT.animate([{transform:C.t},{transform:P.t}],{duration:KD,easing:EZ});
+  kpB.animate([C.b,P.b],{duration:KD,easing:KE});
+  kpT.animate([{transform:C.t},{transform:P.t}],{duration:KD,easing:KE});
 }
 function kpHide(){
   kpOn=false;
   const done=()=>{
     if(kpOn)return;
     const tw=$('#tw');tw.style.transition='none';root.classList.remove('kmh');tw.getBoundingClientRect();tw.style.transition='';
-    tw.classList.remove('pop');tw.getBoundingClientRect();tw.classList.add('pop');setTimeout(()=>tw.classList.remove('pop'),260);
+    tw.classList.remove('pop');tw.getBoundingClientRect();tw.classList.add('pop');setTimeout(()=>tw.classList.remove('pop'),380);
     kpt.classList.remove('on');[kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
   };
   if(!DUR||!TWG){done();return}
@@ -974,8 +976,8 @@ function kpHide(){
   [kpB,kpT].forEach(n=>n.getAnimations().forEach(a=>a.cancel()));
   /* 알약이 커지며 하단 타이머 자리·크기로 정확히 돌아간 순간, 진짜 하단 타이머로 넘긴다 */
   const C=kpCard();
-  kpB.animate([from.b,C.b],{duration:KD,easing:EZ,fill:'forwards'});
-  const a=kpT.animate([{transform:from.t==='none'?'none':from.t},{transform:C.t}],{duration:KD,easing:EZ,fill:'forwards'});
+  kpB.animate([from.b,C.b],{duration:KD,easing:KE,fill:'forwards'});
+  const a=kpT.animate([{transform:from.t==='none'?'none':from.t},{transform:C.t}],{duration:KD,easing:KE,fill:'forwards'});
   a.onfinish=done;
 }
 setTimeout(twMeasure,300);addEventListener('resize',()=>setTimeout(twMeasure,300));
