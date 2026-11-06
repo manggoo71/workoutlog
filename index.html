@@ -129,8 +129,17 @@ body{timeline-scope:--pg}
 html{background:var(--cd)}
 /* 하단 타이머: 배경·그림자를 별도 층으로 두고, 작은 타이머로 변할 때 이 층과 내용이 한 덩어리로 함께 변형된다 */
 #tw .tsh,#tw .tbg{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
-#tw .tsh{border-radius:28px;box-shadow:0 3px 12px var(--sh)}
 #tw .tbg{background:var(--cd);--r:28px}
+/* 그림자는 큰 카드용·작은 타이머용을 미리 그려 두고, 전환 중에는 옮기고 늘이며 서로 바꿔 보이기만 한다(매 프레임 흐림 재계산 없음) */
+#tw .tsh{transform-origin:0 0;will-change:transform,opacity}
+#tw .tsc{border-radius:28px;box-shadow:0 3px 12px var(--sh)}
+#tw .tsp{width:64px;height:32px;border-radius:16px;box-shadow:0 0 0 .5px rgba(0,0,0,.04),0 3px 12px var(--sh);opacity:0}
+/* 전환 중 배경: 가로 막대·세로 막대·모서리 원 4개를 옮기고 늘이기만 해서 둥근 사각형을 만든다
+   (모든 움직임을 iOS 합성기에 맡겨 120Hz로, 앱이 바빠도 끊기지 않게). 멈춘 큰 타이머는 스쿼클 배경 */
+#tw .tbp{position:absolute;left:0;top:0;background:var(--cd);transform-origin:0 0;will-change:transform;pointer-events:none;opacity:0}
+#tw .tbc{width:56px;height:56px;border-radius:50%}
+html.kpm #tw .tbp{opacity:1}
+html.kpm #tw .tbg{opacity:0}
 #tw .tf{position:relative}
 #tm,#wk,#tw .ib2{will-change:transform}
 html.kpm #tw{opacity:1!important}
@@ -173,7 +182,7 @@ html.bkp .spn{width:20px;opacity:1}
 </header>
 <main id="pg"></main>
 <div id="fb"></div>
-<div id="tw"><i class="tsh"></i><i class="tbg"></i><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
+<div id="tw"><i class="tsh tsc"></i><i class="tsh tsp"></i><i class="tbg"></i><i class="tbp tbh"></i><i class="tbp tbv"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><footer class="tf"><div class="tl"><span id="tm">00:00</span><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
 <div id="dg"><div class="sh"><p id="dm"></p><div id="dx"></div><textarea id="dt"></textarea><div class="db"><button id="dd"></button><button id="dc">취소</button><button id="dk">확인</button></div></div></div>
 <script>
 const $=s=>document.querySelector(s);
@@ -862,7 +871,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106zj';
+const BUILD='20261106zl';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -950,20 +959,19 @@ const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
    진짜 하단 타이머 하나(배경·숫자·'운동 시작'·버튼)가 값 m 하나로 함께 변형된다(m=0 큰 타이머, m=1 작은 타이머).
    목표는 부드럽게 출발하는 곡선으로 옮겨 가고, m은 그 목표를 스프링으로 따라가
    빠르게 이동한 뒤 약 2% 지나쳤다가 한 번 자리를 잡는다. 도중에 방향이 바뀌어도 속도를 이어받는다. */
-const TW=$('#tw'),TSH=TW.querySelector('.tsh'),TBG=TW.querySelector('.tbg'),TM=$('#tm');
+const TW=$('#tw'),TSC=TW.querySelector('.tsc'),TSP=TW.querySelector('.tsp'),TBG=TW.querySelector('.tbg'),TM=$('#tm');
 const TEL=[...TW.querySelectorAll('#wk,#ts,#tr')];
 const KH=32,KS=15/46,KPAD=13;
 /* 작아질 때는 올라오는 키보드보다 먼저 떠오르도록 출발을 조금 짧게, 커질 때는 더 여유 있게 */
 const SPRS={1:{w:17,z:.74,ramp:.12},0:{w:16,z:.74,ramp:.2}};
-const M={m:0,v:0,to:0,from:0,t0:0,py:0,pv:0,pt:0,run:0,last:0,g:null,k:SPRS[0]};
+const M={m:0,to:0,t0:0,py:0,pt:0,run:0,g:null,k:SPRS[0],traj:null,anims:[]};
 let kpOn=false;
 const eio=x=>-(Math.cos(Math.PI*Math.min(1,Math.max(0,x)))-1)/2;
 const ss=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
 /* 작은 타이머의 위쪽 위치(하단 타이머 기준): 키보드 위 10pt */
 const kpPy=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH)-TW.offsetTop;
 function twRest(){
-  [TM,...TEL].forEach(e=>{e.style.transform='';e.style.opacity=''});
-  TSH.style.cssText='';TBG.style.cssText='';
+  [TM,...TEL,TSC,TSP,TBH,TBV,...TBC].forEach(e=>{e.style.transform='';e.style.opacity=''});TBG.style.cssText='';
   TBG.style.setProperty('--w',TW.offsetWidth+'px');TBG.style.setProperty('--h',TW.offsetHeight+'px');
 }
 /* 큰 타이머일 때의 배치(변형 없는 상태에서 잰다) */
@@ -972,50 +980,78 @@ function twGeo(){
   return{W:TW.offsetWidth,H:TW.offsetHeight,ex:e.left-r.left,ey:e.top-r.top,tw:rg.getBoundingClientRect().width,th:TM.offsetHeight,
     els:TEL.map(el=>{const b=el.getBoundingClientRect();return{el,cx:b.left-r.left+b.width/2,cy:b.top-r.top+b.height/2}})};
 }
-function twDraw(){
-  const g=M.g,m=M.m,mc=Math.min(1,Math.max(0,m));
-  const Pw=Math.round(g.tw*KS+KPAD*2);
-  const C=[0,0,g.W,g.H,28],P=[(g.W-Pw)/2,M.py,Pw,KH,KH/2],F=C.map((c,i)=>c+(P[i]-c)*m);
-  const [x,y,w,h]=F,r=Math.max(0,F[4]),fcx=x+w/2,fcy=y+h/2,ccx=g.W/2,ccy=g.H/2,sx=w/g.W,sy=h/g.H;
-  /* 배경·그림자 */
-  const B=TBG.style,S=TSH.style;
-  B.left=S.left=x+'px';B.top=S.top=y+'px';B.width=S.width=w+'px';B.height=S.height=h+'px';
-  B.setProperty('--w',w+'px');B.setProperty('--h',h+'px');B.setProperty('--r',r+'px');S.borderRadius=r+'px';
-  /* 숫자: 카드 안 왼쪽 자리에서 작은 타이머 한가운데로, 크기는 카드와 같은 비율로 */
+const TBH=TW.querySelector('.tbh'),TBV=TW.querySelector('.tbv'),TBC=[...TW.querySelectorAll('.tbc')],R0=28;
+/* m(0=큰 타이머, 1=작은 타이머)과 작은 타이머 높이 py에서 각 요소의 모양 */
+function twState(m,py){
+  const g=M.g,mc=Math.min(1,Math.max(0,m)),Pw=g.pw;
+  const C=[0,0,g.W,g.H,R0],P=[(g.W-Pw)/2,py,Pw,KH,KH/2],F=C.map((c,i)=>c+(P[i]-c)*m);
+  const [x,y,w,h]=F,r=Math.max(0,Math.min(F[4],h/2,w/2)),fcx=x+w/2,fcy=y+h/2,ccx=g.W/2,ccy=g.H/2,sx=w/g.W,sy=h/g.H;
+  const T=(a,b,c,d)=>'translate3d('+a+'px,'+b+'px,0) scale('+c+','+(d===undefined?c:d)+')',out=[];
+  /* 배경 조각 */
+  out.push([TBH,T(x,y+r,w/g.W,Math.max(0,h-2*r)/(g.H-2*R0))]);
+  out.push([TBV,T(x+r,y,Math.max(0,w-2*r)/(g.W-2*R0),h/g.H)]);
+  const k=r/R0,cx=[x,x+w-2*r,x,x+w-2*r],cy=[y,y,y+h-2*r,y+h-2*r];
+  TBC.forEach((e,i)=>out.push([e,T(cx[i],cy[i],k)]));
+  /* 그림자 두 장 교차 */
+  out.push([TSC,T(x,y,sx,sy),(1-mc).toFixed(3)]);
+  out.push([TSP,T(x,y,w/Pw,h/KH),mc.toFixed(3)]);
+  /* 숫자: 카드 왼쪽 자리 → 작은 타이머 한가운데, 크기는 카드와 같은 비율 */
   const tcx=g.ex+g.tw/2,tcy=g.ey+g.th/2;let X,Y,sc;
   if(m<0){X=fcx+(tcx-ccx)*sx;Y=fcy+(tcy-ccy)*sy;sc=sy}
   else{X=fcx+(tcx-ccx)*(1-mc);Y=fcy+(tcy-ccy)*(1-mc);sc=1+(KS-1)*m}
-  TM.style.transform='translate3d('+(X-g.tw*sc/2-g.ex)+'px,'+(Y-g.th*sc/2-g.ey)+'px,0) scale('+sc+')';
-  /* '운동 시작'·버튼: 카드에 붙은 채로 같이 줄고 늘며, 카드가 작아질수록 흐려진다 */
+  out.push([TM,T(X-g.tw*sc/2-g.ex,Y-g.th*sc/2-g.ey,sc)]);
+  /* '운동 시작'·버튼: 카드에 붙어 같이 줄고 늘며, 작아질수록 흐려짐 */
   const o=(1-ss(.06,.5,mc)).toFixed(3);
-  for(const q of g.els){
-    const nx=fcx+(q.cx-ccx)*sx,ny=fcy+(q.cy-ccy)*sy;
-    q.el.style.transform='translate3d('+(nx-q.cx)+'px,'+(ny-q.cy)+'px,0) scale('+sy+')';q.el.style.opacity=o;
-  }
+  for(const q of g.els)out.push([q.el,T(fcx+(q.cx-ccx)*sx-q.cx,fcy+(q.cy-ccy)*sy-q.cy,sy),o]);
+  return out;
 }
-function twTick(now){
-  const dt=Math.min(.05,Math.max(0,(now-M.last)/1000));M.last=now;
-  const K=M.k,W2=K.w*K.w,D=2*K.z*K.w;
-  const tgt=M.from+(M.to-M.from)*eio((now-M.t0)/1000/K.ramp),n=Math.max(1,Math.ceil(dt*240)),h=dt/n;
-  for(let i=0;i<n;i++){
-    M.v+=(W2*(tgt-M.m)-D*M.v)*h;M.m+=M.v*h;
-    M.pv+=(W2*(M.pt-M.py)-D*M.pv)*h;M.py+=M.pv*h;
+function twPaint(m,py){for(const [e,t,o] of twState(m,py)){e.style.transform=t;if(o!==undefined)e.style.opacity=o}}
+/* 스프링 궤적을 미리 계산(60Hz 표본) */
+const SR=60;
+function twSim(m0,v0,py0,pv0,to,pt,K){
+  const W2=K.w*K.w,D=2*K.z*K.w,h=1/(SR*8),out=[{m:m0,v:v0,py:py0,pv:pv0}];
+  let m=m0,v=v0,py=py0,pv=pv0,t=0;
+  for(let i=1;i<=SR*2;i++){
+    for(let j=0;j<8;j++){const tg=m0+(to-m0)*eio(t/K.ramp);v+=(W2*(tg-m)-D*v)*h;m+=v*h;pv+=(W2*(pt-py)-D*pv)*h;py+=pv*h;t+=h}
+    out.push({m,v,py,pv});
+    if(t>=K.ramp&&Math.abs(m-to)<.0015&&Math.abs(v)<.02&&Math.abs(py-pt)<.3&&Math.abs(pv)<.6)break;
   }
-  const done=now-M.t0>=K.ramp*1000&&Math.abs(M.m-M.to)<.0015&&Math.abs(M.v)<.02&&Math.abs(M.py-M.pt)<.3&&Math.abs(M.pv)<.6;
-  if(done){M.m=M.to;M.v=0;M.py=M.pt;M.pv=0}
-  twDraw();
-  if(!done){requestAnimationFrame(twTick);return}
-  M.run=0;
-  if(M.to===0){twRest();root.classList.remove('kpm')}
+  out[out.length-1]={m:to,v:0,py:pt,pv:0};
+  return out;
 }
-function twRun(){if(!M.run){M.run=1;M.last=performance.now();requestAnimationFrame(twTick)}}
+/* 지금 이 순간의 상태(진행 중인 궤적에서) */
+function twNow(){
+  if(!M.run||!M.traj)return{m:M.m,v:0,py:M.py,pv:0};
+  const f=Math.min(M.traj.length-1,(performance.now()-M.t0)/1000*SR),i=Math.floor(f),a=M.traj[i],b=M.traj[Math.min(i+1,M.traj.length-1)],u=f-i;
+  const L=k=>a[k]+(b[k]-a[k])*u;return{m:L('m'),v:L('v'),py:L('py'),pv:L('pv')};
+}
+function twStop(){(M.anims||[]).forEach(a=>{a.onfinish=null;a.cancel()});M.anims=[]}
+function twPlay(){
+  const c=twNow();
+  twStop();
+  const tr=twSim(c.m,c.v,c.py,c.pv,M.to,M.pt,M.k);M.traj=tr;M.t0=performance.now();M.run=1;
+  twPaint(c.m,c.py);
+  /* 요소별 키프레임 → 합성기에서 재생 */
+  const fr=new Map();
+  tr.forEach(st=>{for(const [e,t,o] of twState(st.m,st.py)){let a=fr.get(e);if(!a)fr.set(e,a=[]);a.push(o===undefined?{transform:t}:{transform:t,opacity:o})}});
+  const dur=(tr.length-1)/SR*1000,to=M.to;
+  fr.forEach((k,e)=>M.anims.push(e.animate(k,{duration:dur,easing:'linear',fill:'forwards'})));
+  const last=tr[tr.length-1];
+  M.anims[0].onfinish=()=>{
+    if(M.to!==to)return;
+    twPaint(last.m,last.py);twStop();M.run=0;M.m=last.m;M.py=last.py;
+    if(to===0){twRest();root.classList.remove('kpm')}
+  };
+}
 function twGo(on){
   M.to=on?1:0;M.k=SPRS[M.to];
   if(!M.run&&M.m===M.to)return;
-  if(!M.run&&M.m===0){twRest();M.g=twGeo()}
-  if(!DUR){M.m=M.to;M.v=0;M.py=M.pt;if(on){root.classList.add('kpm');twDraw()}else{twRest();root.classList.remove('kpm')}return}
-  M.from=M.m;M.t0=performance.now();
-  root.classList.add('kpm');twRun();
+  if(!M.run&&M.m===0){twRest();M.g=twGeo();M.g.pw=Math.round(M.g.tw*KS+KPAD*2);
+    TBH.style.width=M.g.W+'px';TBH.style.height=(M.g.H-2*R0)+'px';TBV.style.width=(M.g.W-2*R0)+'px';TBV.style.height=M.g.H+'px';TSP.style.width=M.g.pw+'px';
+    twPaint(0,M.py)}
+  root.classList.add('kpm');
+  if(!DUR){twStop();twPaint(M.to,M.pt);M.m=M.to;M.py=M.pt;M.run=0;if(!on){twRest();root.classList.remove('kpm')}return}
+  twPlay();
 }
 if(window.ResizeObserver)new ResizeObserver(()=>{if(!M.run&&M.m===0)twRest()}).observe(TW);
 twRest();
@@ -1026,7 +1062,7 @@ function kpill(){
   if(on){
     const pt=kpPy();
     if(!kpOn){kpOn=true;if(!M.run&&M.m===0)M.py=pt;M.pt=pt;twGo(true)}
-    else if(pt!==M.pt){M.pt=pt;M.from=M.m;twRun()}
+    else if(Math.abs(pt-M.pt)>.5){M.pt=pt;if(DUR)twPlay();else twPaint(M.to,pt)}
   }else if(kpOn){kpOn=false;twGo(false)}
 }
 setInterval(kpill,250);
