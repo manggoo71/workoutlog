@@ -35,7 +35,7 @@ nav button.on{background:var(--ac);color:#fff}
 #pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
-.ps{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + max(var(--kb,0px),var(--kp,0px)))}
+.ps{position:relative;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + max(var(--kb,0px),var(--kp,0px)))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
 .c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
 .c.rm{pointer-events:none}
@@ -107,11 +107,13 @@ nav button.on{background:var(--ac);color:#fff}
 .mn{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
 .mn .bk{text-align:center;color:var(--mu);font-size:13px;font-weight:600}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
-#tw{flex:none;filter:drop-shadow(0 -2px 14px var(--sh))}
+#tw{flex:none;position:relative;filter:drop-shadow(0 -2px 14px var(--sh))}
+#tw::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:calc(env(safe-area-inset-bottom,0px) + 40px);background:var(--cd);pointer-events:none}
+html{background:var(--bg)}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:10px 16px calc(max(10px,calc(env(safe-area-inset-bottom,0px) - 6px)) + var(--xb,0px));background:var(--cd);--r:20px;border-radius:var(--r) var(--r) 0 0}
 .tl{display:contents}
 #tm{grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
-#wk{grid-column:1;grid-row:2;justify-self:start;margin-top:2px;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
+#wk{grid-column:1;grid-row:2;justify-self:start;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
 #tr{grid-column:3}
 #ts{grid-column:2;background:var(--ac);color:#fff}
@@ -317,23 +319,26 @@ pg.addEventListener('click',async ev=>{
     S.sg[ti]=gi;lsave();
     sg.style.setProperty('--i',gi);
     [...sg.children].forEach((x,k)=>x.classList.toggle('on',k===gi));
-    const ws=[...p.querySelectorAll('.gw')],nw=ws[gi],ps=p.querySelector('.ps'),dir=gi>old?1:-1;
-    const fin=()=>nw.animate([{opacity:0,transform:'translateX('+(8*dir)+'px)'},{opacity:1,transform:'none'}],{duration:260,easing:EZ2});
-    ws.forEach(w=>w.getAnimations&&w.getAnimations().forEach(x=>x.cancel()));
-    const ow=ws.find((w,k)=>k!==gi&&!w.classList.contains('hid'));
-    if(!ow||!DUR){
+    const ws=[...p.querySelectorAll('.gw')],nw=ws[gi],ps=p.querySelector('.ps');
+    const clr=w=>{w.style.position=w.style.top=w.style.left=w.style.width=w.style.pointerEvents='';delete w.dataset.out};
+    ws.forEach(w=>{
+      if(w.getAnimations)w.getAnimations().forEach(x=>x.cancel());
+      if(w.dataset.out){w.classList.add('hid');clr(w)}
+    });
+    const outs=ws.filter((w,k)=>k!==gi&&!w.classList.contains('hid'));
+    if(!outs.length||!DUR){
       ws.forEach((w,k)=>w.classList.toggle('hid',k!==gi));
-      if(DUR&&ow)fin();
     }else{
-      const tok=p._st=(p._st||0)+1;
-      const an=ow.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX('+(-8*dir)+'px)'}],{duration:150,easing:'ease-in',fill:'forwards'});
-      an.onfinish=()=>{
-        if(p._st!==tok)return;
-        an.cancel&&an.cancel();
-        ow.classList.add('hid');nw.classList.remove('hid');
-        ps.scrollTop=0;ps.classList.remove('sc');
-        fin();
-      };
+      const st=ps.scrollTop;
+      outs.forEach(w=>{
+        const t=w.offsetTop-st,l=w.offsetLeft,wd=w.offsetWidth;
+        w.dataset.out=1;w.style.position='absolute';w.style.top=t+'px';w.style.left=l+'px';w.style.width=wd+'px';w.style.pointerEvents='none';
+        const an=w.animate([{opacity:1},{opacity:0}],{duration:220,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'});
+        an.onfinish=()=>{if(w.dataset.out){w.classList.add('hid');clr(w)}};
+      });
+      nw.classList.remove('hid');
+      ps.scrollTop=0;ps.classList.remove('sc');
+      nw.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],{duration:340,delay:60,easing:'cubic-bezier(.22,.7,.2,1)',fill:'backwards'});
     }
     return;
   }
@@ -385,11 +390,23 @@ pg.addEventListener('input',ev=>{
 pg.addEventListener('focusin',ev=>{
   const t=ev.target;
   if(t.dataset&&(t.dataset.f==='w'||t.dataset.f==='r'))t.dataset.fv=t.value;
-  if(t.matches&&t.matches('input')&&t.closest('.ps')){
-    document.documentElement.style.setProperty('--kp',KEST+'px');
-    settle(t,kbNow>50?100:450);
-  }
+  if(t.matches&&t.matches('input')&&t.closest('.ps'))bring(t);
 });
+/* 탭: 기본 포커스(화면 튐의 원인) 대신, 먼저 위치를 잡고 스크롤 없이 포커스 */
+let tp=null;
+pg.addEventListener('touchstart',e=>{
+  const t=e.target;
+  tp=t.matches&&t.matches('input')&&t.closest('.ps')&&document.activeElement!==t&&e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY,t}:null;
+},{passive:true});
+pg.addEventListener('touchend',e=>{
+  if(!tp)return;const c=e.changedTouches[0],t=tp.t;
+  const m=Math.hypot(c.clientX-tp.x,c.clientY-tp.y);tp=null;
+  if(m>8||!e.cancelable)return;
+  e.preventDefault();
+  bring(t);
+  t.focus({preventScroll:true});
+  try{const n=t.value.length;t.setSelectionRange(n,n)}catch(x){}
+},{passive:false});
 pg.addEventListener('focusout',()=>setTimeout(()=>{
   const a=document.activeElement;
   if(!(a&&a.matches&&a.matches('input')&&a.closest('.ps')))document.documentElement.style.removeProperty('--kp');
@@ -507,7 +524,7 @@ try{WS=+localStorage.getItem('wws')||0}catch(e){}
 if(WS&&Date.now()-WS>12*36e5)WS=0;
 function wshow(){
   const b=$('#wk');let t='운동 시작';
-  if(WS){const m=Math.max(0,Math.floor((Date.now()-WS)/6e4));t=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')}
+  if(WS){const sc=Math.max(0,Math.floor((Date.now()-WS)/1e3)),z=n=>String(n).padStart(2,'0');t=z(Math.floor(sc/3600))+':'+z(Math.floor(sc/60)%60)+':'+z(sc%60)}
   if(b.textContent!==t)b.textContent=t;
   b.classList.toggle('on',!!WS);
 }
@@ -516,30 +533,38 @@ setInterval(tshow,250);tshow();
 addEventListener('visibilitychange',tshow);
 /* 키보드: 타이머는 하단에 고정, 입력칸은 가려지지 않게 */
 const vv=window.visualViewport;
-let kbNow=0,sT=0;
-const KEST=340;
-function reveal(el){
+let kbNow=0,sT=0,kbMax=0;
+try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
+const est=()=>kbNow>50?kbNow:(kbMax||372);
+const root=document.documentElement;
+function setPad(){root.style.setProperty('--kp',est()+'px')}
+/* 입력칸이 키보드 위에 오도록 목록 스크롤을 '즉시' 옮기고, 화면에서는 같은 거리를 부드럽게 따라가게 한다(FLIP) */
+function bring(el){
   const p=el.closest('.ps');if(!p)return;
+  setPad();
   const r=el.getBoundingClientRect(),pr=p.getBoundingClientRect();
-  const vb=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-KEST,lim=Math.min(vb,$('#tw').getBoundingClientRect().top)-16;
+  const bottom=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est(),lim=bottom-14,top=pr.top+8;
   let d=0;
-  if(r.bottom>lim)d=r.bottom-lim;
-  else if(r.top<pr.top+8)d=r.top-pr.top-8;
-  if(Math.abs(d)>2)p.scrollBy({top:d,behavior:'smooth'});
-}
-function settle(el,ms){
-  clearTimeout(sT);
-  sT=setTimeout(()=>{if(el.isConnected&&document.activeElement===el)reveal(el)},ms);
+  if(r.bottom>lim)d=r.bottom-lim;else if(r.top<top)d=r.top-top;
+  if(Math.abs(d)<2)return;
+  const nt=Math.max(0,Math.min(p.scrollHeight-p.clientHeight,p.scrollTop+d)),real=nt-p.scrollTop;
+  if(Math.abs(real)<1)return;
+  p.scrollTop=nt;
+  const gw=p.querySelector('.gw:not(.hid)');
+  if(DUR&&gw&&gw.animate)gw.animate([{transform:'translateY('+real+'px)'},{transform:'none'}],{duration:280,easing:EZ2});
 }
 function pin(){
   if(!vv)return;
   const off=Math.max(0,vv.offsetTop),kb=Math.max(0,innerHeight-vv.height-off);
-  document.documentElement.style.setProperty('--kb',kb+'px');
+  root.style.setProperty('--kb',kb+'px');
   document.body.style.transform=off?'translate3d(0,'+off+'px,0)':'';
   if(scrollY||scrollX)scrollTo(0,0);
   const was=kbNow;kbNow=kb;
-  const a=document.activeElement;
-  if(kb>50&&Math.abs(kb-was)>20&&a&&a.matches&&a.matches('input')&&a.closest('.ps'))settle(a,120);
+  if(kb>200&&Math.abs(kb-was)>20){
+    kbMax=kb;try{localStorage.setItem('wkb',kb)}catch(e){}
+    const a=document.activeElement;
+    if(a&&a.matches&&a.matches('input')&&a.closest('.ps')){clearTimeout(sT);sT=setTimeout(()=>{if(document.activeElement===a)bring(a)},60)}
+  }
 }
 if(vv){vv.addEventListener('resize',pin);vv.addEventListener('scroll',pin)}
 addEventListener('scroll',()=>{if(scrollY||scrollX)scrollTo(0,0)});
