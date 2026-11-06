@@ -922,7 +922,21 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106zm';
+/* 화면 자동 꺼짐 방지: 앱이 보이는 동안 화면을 켜 둔다(Screen Wake Lock, 홈 화면 앱은 iOS 18.4 이상).
+   앱을 숨기면 시스템이 풀어 버리므로 다시 보일 때마다 새로 요청하고, 거절되면(저전력 모드 등) 터치할 때 다시 시도한다. */
+let WL=null,wlBusy=0,wlFail=-1e9;
+async function wake(){
+  if(WL||wlBusy||document.hidden||!navigator.wakeLock||performance.now()-wlFail<2000)return;
+  wlBusy=1;
+  try{const l=await navigator.wakeLock.request('screen');WL=l;l.addEventListener('release',()=>{if(WL===l)WL=null})}
+  catch(e){wlFail=performance.now()}
+  wlBusy=0;
+}
+wake();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
+addEventListener('pageshow',wake);addEventListener('focus',wake);
+['touchstart','pointerdown','click'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
+const BUILD='20261107za';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
