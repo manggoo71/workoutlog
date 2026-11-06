@@ -742,6 +742,7 @@ function snap(){
 }
 $('#pl').onclick=e=>{
   const b=e.target.closest('button');if(!b)return;
+  if(e.isTrusted)locPicked=true;
   const l=+b.dataset.l;if(l===S.loc)return;
   const ov=snap();
   S.loc=l;save();markPl();
@@ -753,6 +754,25 @@ $('#pl').onclick=e=>{
     if(ov){const a=ov.animate([{opacity:1},{opacity:1,offset:.4},{opacity:0}],{duration:360,easing:'linear',fill:'forwards'});a.onfinish=a.oncancel=()=>ov.remove()}
   }
 };
+/* 실행할 때 위치로 회사/집 고르기: 연수구 송도동 → 집, 서초구 우면동 → 회사.
+   위치를 못 받거나 두 곳 밖이면 마지막으로 보던 곳 그대로. 직접 바꾼 뒤에는 건드리지 않는다. */
+const PLACES=[{l:1,lat:37.388,lng:126.650,r:5500},{l:0,lat:37.466,lng:127.022,r:3000}];
+let locPicked=false,hidAt=0;
+function autoLoc(){
+  if(locPicked||!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(p=>{
+    if(locPicked||typing())return;
+    const a=p.coords.latitude,o=p.coords.longitude,rad=Math.PI/180;
+    const dist=q=>{const x=Math.sin((q.lat-a)*rad/2)**2+Math.cos(a*rad)*Math.cos(q.lat*rad)*Math.sin((q.lng-o)*rad/2)**2;return 2*6371e3*Math.asin(Math.sqrt(x))};
+    const hit=PLACES.find(q=>dist(q)<=q.r);
+    if(hit&&hit.l!==S.loc){const b=$('#pl').querySelector('[data-l="'+hit.l+'"]');if(b)b.click()}
+  },()=>{},{enableHighAccuracy:false,maximumAge:5*60e3,timeout:10000});
+}
+addEventListener('visibilitychange',()=>{
+  if(document.hidden){hidAt=Date.now();return}
+  if(hidAt&&Date.now()-hidAt>10*60e3){locPicked=false;autoLoc()}
+});
+setTimeout(autoLoc,400);
 /* 백업: 파일 앱(iCloud Drive)에 저장 / 불러오기 */
 const stamp=()=>{const d=new Date(Date.now()-new Date().getTimezoneOffset()*6e4);return d.toISOString().slice(0,16).replace('T','_').replace(':','')};
 function lastBk(){try{const t=+localStorage.getItem('wbk');if(!t)return '아직 백업한 적이 없어요.';const d=new Date(t);return '마지막 백업: '+d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}catch(e){return ''}}
@@ -843,7 +863,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106ze';
+const BUILD='20261106zf';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -858,6 +878,8 @@ if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator
 /* 휴식 타이머 */
 let T={acc:0,st:0};
 try{const q=JSON.parse(localStorage.getItem('wtm'));if(q&&typeof q.acc==='number')T=q}catch(e){}
+/* sessionStorage는 앱을 완전히 종료하면 비워진다 → 새로 실행이면 휴식 타이머 초기화 */
+try{if(!sessionStorage.getItem('wlive')){T={acc:0,st:0};localStorage.setItem('wtm',JSON.stringify(T))}sessionStorage.setItem('wlive','1')}catch(e){}
 if(T.st&&Date.now()-T.st>3*36e5)T={acc:0,st:0};
 const tsave=()=>{try{localStorage.setItem('wtm',JSON.stringify(T))}catch(e){}};
 const tnow=()=>T.acc+(T.st?Date.now()-T.st:0);
@@ -878,13 +900,10 @@ $('#tr').onclick=()=>{T={acc:0,st:0};tsave();tshow()};
 let noRest=0;
 function restGo(){T={acc:0,st:Date.now()};tsave();tshow();try{kpT.textContent='00:00'}catch(e){}}
 document.addEventListener('focusout',e=>{
-  const t=e.target;if(!t.matches||!t.matches('.f w-in')||noRest)return;
-  setTimeout(()=>{
-    const a=document.activeElement;
-    if(a&&(a.id==='kx'||(a.matches&&a.matches('.f w-in')&&a.closest('.ps'))))return;
-    if(document.hidden)return;
-    restGo();
-  },40);
+  const t=e.target;if(!t.matches||!t.matches('.f w-in')||noRest||document.hidden)return;
+  const n=e.relatedTarget;
+  if(n&&(n.id==='kx'||(n.matches&&n.matches('.f w-in')&&n.closest('.ps'))))return;
+  restGo();
 },true);
 /* 운동 시간(시:분): '운동 시작'을 누르면 시작, 시간을 누르면 리셋 */
 let WS=0;
@@ -931,7 +950,7 @@ const kbTop=()=>(kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est())-ACC-KPH;
 const kpt=document.createElement('div');kpt.id='kpt';kpt.setAttribute('aria-hidden','true');kpt.innerHTML='<i class="kb"></i><b class="kt"></b>';document.body.appendChild(kpt);
 const kpB=kpt.firstChild,kpT=kpt.lastChild,KW=96,KH=32,KD=460,KS=15/46;
 /* 큰 타이머 ↔ 작은 타이머: 천천히 출발해 부드럽게 멈추는 곡선 */
-const KE='cubic-bezier(.45,.05,.2,1)';
+const KE='cubic-bezier(.45,.05,.2,1)',KEU='cubic-bezier(.25,.6,.2,1)';
 let kpOn=false,kpY=0,TWG=null;
 const kpTarget=()=>Math.round(((kbNow>50&&vv)?vv.height:innerHeight-est())-2-KH);
 /* 하단 타이머 카드·숫자의 '키보드가 없을 때' 위치를 기억(키보드가 있을 땐 화면이 움직여 믿을 수 없음) */
@@ -960,8 +979,8 @@ function kpShow(){
   if(!DUR||!TWG)return;
   /* 하단 타이머와 똑같은 모습에서 시작해 작아지며 키보드 위로 */
   const C=kpCard();
-  kpB.animate([C.b,P.b],{duration:KD,easing:KE});
-  kpT.animate([{transform:C.t},{transform:P.t}],{duration:KD,easing:KE});
+  kpB.animate([C.b,P.b],{duration:KD,easing:KEU});
+  kpT.animate([{transform:C.t},{transform:P.t}],{duration:KD,easing:KEU});
 }
 function kpHide(){
   kpOn=false;
@@ -1073,6 +1092,7 @@ document.addEventListener('focusin',e=>{
 document.addEventListener('focusout',e=>{
   const n=e.relatedTarget;
   if(n&&n.matches&&n.matches('input,textarea,w-in'))return;
+  if(kpOn&&e.target.closest&&e.target.closest('.ps'))kpHide();
   setTimeout(()=>{
     const a=document.activeElement;
     if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
