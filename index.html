@@ -72,7 +72,8 @@ body{timeline-scope:--pg}
 .r .n{color:var(--mu);font-weight:700;text-align:center;line-height:54px;transition:color .25s cubic-bezier(.25,1,.5,1)}
 .r.cur .n{color:var(--ac)}
 .r u{text-decoration:none;color:var(--mu);font-size:13px;line-height:54px}
-.f{display:flex;flex-direction:column;min-width:0}
+.f{position:relative;display:flex;flex-direction:column;min-width:0}
+.f .hit{position:absolute;inset:0;z-index:1;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;cursor:text}
 .f w-in{line-height:54px;--r:var(--rb);height:54px;font-size:24px;font-weight:700;text-align:center;width:100%}
 .f w-in:empty::before{color:var(--mu);opacity:.5;font-weight:600;position:absolute;left:0;right:0;top:0;text-align:center}
 .f w-in{position:relative;caret-color:transparent;touch-action:manipulation;-webkit-touch-callout:none}
@@ -317,7 +318,7 @@ function swap(c,dir,f){
 }
 
 /* 렌더 */
-const rowHTML=(s,cu)=>`<div class="r${cu?' cur':''}"><span class="n"></span><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" placeholder="0">${esc(s.w)}</w-in></div><u>kg</u><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" placeholder="0">${esc(s.r)}</w-in></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
+const rowHTML=(s,cu)=>`<div class="r${cu?' cur':''}"><span class="n"></span><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" placeholder="0">${esc(s.w)}</w-in><b class="hit"></b></div><u>kg</u><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" placeholder="0">${esc(s.r)}</w-in><b class="hit"></b></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
 const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" placeholder="-">${esc(e.s)}</w-in></label><label>각도<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" placeholder="-">${esc(e.a)}</w-in></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map((s,i)=>rowHTML(s,i===e.ls)).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
 const PLUS='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const XI='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -601,7 +602,8 @@ pg.addEventListener('touchstart',e=>{
   const t=e.target;tp=null;
   if(e.touches.length!==1)return;
   const xy={x:e.touches[0].clientX,y:e.touches[0].clientY};
-  let wi=t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
+  const hf=t.closest&&t.closest('.f');
+  let wi=hf?hf.querySelector('w-in'):t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
   /* 첫 탭 뒤 목록이 움직여도, 같은 자리를 곧바로 다시 누르면 같은 칸의 두 번째 탭으로 본다 */
   if(lastTap&&lastTap.el.isConnected&&performance.now()-lastTap.t<360&&Math.hypot(xy.x-lastTap.x,xy.y-lastTap.y)<30)wi=lastTap.el;
   if(wi&&wi.closest('.ps')&&document.activeElement!==wi){hoTok++;tp={...xy,t:wi}}
@@ -609,7 +611,7 @@ pg.addEventListener('touchstart',e=>{
   else{
     const b=t.closest&&t.closest('[data-a]');
     if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b};
-    else if(typing()&&!(t.closest&&t.closest('w-in,button,[data-a],.m label,.sg')))tp={...xy,out:1};
+    else if(typing()&&!(t.closest&&t.closest('w-in,.f,button,[data-a],.m label,.sg')))tp={...xy,out:1};
   }
 },{passive:true});
 pg.addEventListener('touchend',e=>{
@@ -632,7 +634,7 @@ pg.addEventListener('touchend',e=>{
   if(kbNow<50&&DUR){
     /* 키보드가 없을 때: 화면 위쪽의 보이지 않는 칸에 먼저 포커스해 키보드를 올리고(iOS가 화면 전체를 밀지 않음),
        목록을 부드럽게 옮긴 뒤 실제 칸으로 포커스를 넘긴다 */
-    const im=t.getAttribute('inputmode');
+    const im=t.getAttribute('inputmode');kbWant=im||'text';
     if(im)kx.setAttribute('inputmode',im);else kx.removeAttribute('inputmode');
     kx.textContent='';kx.focus({preventScroll:true});
     bring(t,1);handoff(t);
@@ -642,6 +644,8 @@ pg.addEventListener('touchend',e=>{
     caretEnd(t);
   }
 },{passive:false});
+pg.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('.f .hit');if(!h)return;const w=h.parentNode.querySelector('w-in');if(document.activeElement!==w){w.focus({preventScroll:true});bring(w)}caretEnd(w)});
+pg.addEventListener('dblclick',e=>{const h=e.target.closest&&e.target.closest('.f .hit');if(!h)return;const w=h.parentNode.querySelector('w-in');clearField(w);w.focus({preventScroll:true});caretEnd(w)});
 /* 세트 목록 안에서만: 더블탭의 두 번째 탭이 시작되는 순간 iOS 기본 동작을 막는다
    (목록 전체가 아니라 세트 영역에만 걸어 화면 스와이프·스크롤에는 영향 없음) */
 const dtStart=e=>{
@@ -672,7 +676,13 @@ function handoff(t){
     if(tok!==hoTok||document.activeElement!==kx)return;
     const st=p?p.scrollTop:0;
     still=Math.abs(st-last)<.5?still+1:0;last=st;
-    if(still<4&&performance.now()-t0<700){requestAnimationFrame(step);return}
+    const el=performance.now()-t0;
+    if(kbNow>50&&vv&&el<1200){
+      const r=t.getBoundingClientRect(),kt=vv.offsetTop+vv.height-ACC;
+      if(r.bottom>kt-4){if(!t._fix){t._fix=1;bring(t,1)}still=0;requestAnimationFrame(step);return}
+    }
+    if(still<4&&el<700){requestAnimationFrame(step);return}
+    t._fix=0;
     const extra=kx.textContent;
     t.focus({preventScroll:true});caretEnd(t);
     if(extra){t.textContent+=extra;caretEnd(t);t.dispatchEvent(new Event('input',{bubbles:true}))}
@@ -847,7 +857,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106za';
+const BUILD='20261106zb';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -918,11 +928,14 @@ $('#wk').onclick=async()=>{
 };
 setInterval(tshow,250);tshow();
 addEventListener('visibilitychange',tshow);
+const unpin=()=>{if(document.hidden)return;const a=document.activeElement;if(a&&a.matches&&a.matches('w-in,input,textarea'))return;document.body.style.transform='';kbNow=0;root.style.setProperty('--kb','0px');root.classList.remove('kbo')};
+addEventListener('visibilitychange',()=>setTimeout(unpin,0));addEventListener('pageshow',unpin);
 /* 키보드: 타이머는 하단에 고정, 입력칸은 가려지지 않게 */
 const vv=window.visualViewport;
-let kbNow=0,sT=0,kbMax=0;
-try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
-const est=()=>kbNow>50?kbNow:(kbMax||345);
+let kbNow=0,sT=0,kbMax=0,kbH={},kbWant='text';
+try{kbMax=+localStorage.getItem('wkb')||0;kbH=JSON.parse(localStorage.getItem('wkb2'))||{}}catch(e){}
+const kbType=el=>el&&el.getAttribute&&el.getAttribute('inputmode')||'text';
+const est=()=>kbNow>50?kbNow:(kbH[kbWant]||kbMax||345);
 /* 키보드 윗선: 위에 떠 있는 입력 보조 막대(∧ ∨ ✓) 높이만큼 더 위로 본다 */
 const ACC=60;
 /* 키보드 위 타이머 알약이 차지하는 높이(간격 8 + 높이 32 + 여유) */
@@ -933,7 +946,7 @@ function kpill(){
   const a=document.activeElement,ed=a&&(a.id==='kx'||(a.matches&&a.matches('w-in')&&a.closest('.ps')));
   const on=!!(vv&&ed&&kbNow>50&&(T.st||T.acc>0));
   if(on){
-    const y=Math.round(vv.height-14-32);if(kpt._y!==y){kpt._y=y;kpt.style.setProperty('--ky',y+'px')}
+    const y=Math.round(vv.height-2-32);if(kpt._y!==y){kpt._y=y;kpt.style.setProperty('--ky',y+'px')}
     const sc=Math.floor(tnow()/1000),tx=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');
     if(kpt.textContent!==tx)kpt.textContent=tx;
   }
@@ -1046,8 +1059,9 @@ function pin(){
   }else if(idle&&kb<50)release();
   kpill();
   if(kb>200&&Math.abs(kb-was)>20){
-    const same=Math.abs(kb-(kbMax||345))<14&&was<50;
-    kbMax=kb;try{localStorage.setItem('wkb',kb)}catch(e){}
+    const a0=document.activeElement,ty=kbType(a0);
+    const same=Math.abs(kb-(kbH[ty]||kbMax||345))<14&&was<50;
+    kbMax=kb;kbH[ty]=kb;try{localStorage.setItem('wkb',kb);localStorage.setItem('wkb2',JSON.stringify(kbH))}catch(e){}
     const a=document.activeElement;
     if(!same&&a&&a.matches&&a.matches('w-in')&&a.closest('.ps')){clearTimeout(sT);sT=setTimeout(()=>{if(document.activeElement===a)bring(a,1)},80)}
   }
