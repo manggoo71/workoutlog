@@ -783,15 +783,16 @@ $('#ti').onclick=()=>{
     const g=ghCfg();
     el.innerHTML=(g?'<button data-k="ex">GitHub에 백업</button><button data-k="gi">GitHub에서 불러오기</button>':'<button data-k="ex">iCloud에 백업</button><button data-k="im">백업 불러오기</button>')+'<button data-k="gh">'+(g?'GitHub 연결 관리':'GitHub 자동 백업 연결')+'</button><small class="bk">'+esc(lastBk())+'</small>';
     el.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;
-      const k=b.dataset.k;if(k==='ex')doBackup();else if(k==='im')fin.click();else if(k==='gi')ghRestore();else if(k==='gh')ghConnect();
-      end(true)};
+      const k=b.dataset.k;
+      end(true);
+      if(k==='ex')doBackup();else if(k==='im')fin.click();else if(k==='gi')ghRestore();else if(k==='gh')ghConnect()};
   }});
 };
 
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106x';
+const BUILD='20261106y';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
