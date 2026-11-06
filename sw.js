@@ -1,4 +1,4 @@
-const C='wlog-v13',A=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
+const C='wlog-v14',A=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>clients.claim()))});
 // 인터넷이 되면 항상 최신 파일을 받고(성공 응답만 저장), 서버 오류·오프라인이면 저장해 둔 화면으로 엽니다.

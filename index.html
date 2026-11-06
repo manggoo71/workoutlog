@@ -23,7 +23,7 @@ box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
 body{position:fixed;inset:0;padding-top:env(safe-area-inset-top,0px);display:flex;flex-direction:column;background:var(--bg);color:var(--tx);font:16px/1.3 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;overflow:hidden;font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;touch-action:manipulation}
-input,textarea{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
+input,textarea,w-in{font:inherit;color:var(--tx);border:0;outline:0;background:var(--in);--r:12px;border-radius:var(--r);min-width:0}
 header{background:var(--bg);padding:6px 12px 0}
 .top{display:flex;align-items:center;height:48px}
 .ti{font-size:22px;font-weight:800;padding:8px 10px 8px 0}
@@ -53,7 +53,7 @@ nav button.on{background:var(--ac);color:#fff}
 .tr.eq{color:var(--mu)}
 .m{display:flex;gap:8px;padding:6px 12px 12px}
 .m label{flex:1;display:flex;align-items:center;gap:8px;background:var(--in);--r:12px;border-radius:var(--r);padding-left:12px;color:var(--mu);font-size:13px;white-space:nowrap}
-.m input{flex:1;width:100%;height:40px;background:transparent;border-radius:0;padding:0 10px 0 0;font-size:16px;font-weight:600}
+.m w-in{line-height:40px;flex:1;width:100%;height:40px;background:transparent;border-radius:0;padding:0 10px 0 0;font-size:16px;font-weight:600}
 .ss{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows var(--d) var(--e),visibility 0s linear var(--d)}
 .c.o .ss{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows var(--d) var(--e),visibility 0s}
 .si{overflow:hidden;min-height:0;opacity:0;transition:opacity var(--d) var(--e)}
@@ -66,14 +66,14 @@ nav button.on{background:var(--ac);color:#fff}
 .r .n{color:var(--mu);font-weight:700;text-align:center;line-height:54px}
 .r u{text-decoration:none;color:var(--mu);font-size:13px;line-height:54px}
 .f{display:flex;flex-direction:column;min-width:0}
-.f input{--r:var(--rb);height:54px;font-size:24px;font-weight:700;text-align:center;width:100%}
-.f input::placeholder{color:var(--mu);opacity:.5;font-weight:600}
+.f w-in{line-height:54px;--r:var(--rb);height:54px;font-size:24px;font-weight:700;text-align:center;width:100%}
+.f w-in:empty::before{color:var(--mu);opacity:.5;font-weight:600}
 .ib2{width:52px;height:52px;flex:none;--r:var(--rb);border-radius:var(--r);background:var(--in);color:var(--mu);display:flex;align-items:center;justify-content:center}
 .ib2.pls{color:var(--ac)}
 .ib2:active{opacity:.7}
 .bt{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .ad{display:flex;margin-top:4px}
-.ad input{flex:1;height:52px;padding:0 16px;font-size:17px;background:var(--cd)}
+.ad w-in{line-height:52px;flex:1;height:52px;padding:0 16px;font-size:17px;background:var(--cd)}
 .ad button{width:0;height:52px;margin-left:0;padding:0;--r:14px;border-radius:var(--r);background:var(--cd);color:var(--ac);display:flex;align-items:center;justify-content:center;overflow:hidden;opacity:0;transform:scale(.6);visibility:hidden;transition:width var(--d) var(--e),margin-left var(--d) var(--e),opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s linear var(--d)}
 .ad.has button{width:52px;margin-left:8px;opacity:1;transform:none;visibility:visible;transition:width var(--d) var(--e),margin-left var(--d) var(--e),opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s}
 #dg{position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:16px 16px calc(16px + var(--kb,0px) + var(--xb,0px));background:rgba(0,0,0,.42);opacity:0;pointer-events:none;transition:opacity var(--d) var(--e)}
@@ -109,8 +109,10 @@ nav button.on{background:var(--ac);color:#fff}
 .mn button{height:52px;--r:14px;border-radius:var(--r);background:var(--in);font-weight:700;font-size:17px}
 #tw{flex:none;position:relative;filter:drop-shadow(0 -2px 14px var(--sh))}
 html{background:var(--cd)}
-input[type=search]{-webkit-appearance:none;appearance:none}
-input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-search-decoration{-webkit-appearance:none;display:none}
+w-in{display:block;box-sizing:border-box;white-space:nowrap;overflow:hidden;cursor:text;-webkit-user-select:text;user-select:text;-webkit-tap-highlight-color:transparent;caret-color:var(--ac)}
+w-in:empty::before{content:attr(placeholder);color:var(--mu);opacity:.6;pointer-events:none}
+body{overflow:visible}
+#tw::after{content:"";position:absolute;left:0;right:0;top:calc(100% - 1px);height:160px;background:var(--cd);pointer-events:none}
 #tw{transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #tw{opacity:0;pointer-events:none}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:10px 16px calc(max(10px,calc(env(safe-area-inset-bottom,0px) - 6px)) + var(--xb,0px));background:var(--cd);--r:20px;border-radius:var(--r) var(--r) 0 0}
@@ -127,7 +129,7 @@ html.kbo #tw{opacity:0;pointer-events:none}
 @property --h{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 /* iOS 연속 곡률(스쿼클, G2): 라운드 요소는 --r 만 지정. 새 요소는 이 목록에 선택자를 추가 */
 @supports (clip-path:shape(from 0px 0px,hline to calc(100% - 1px),curve by 1px 1px with 0px 0px / 1px 0px,arc by 1px 1px of 1px cw,vline to 100%,close)){
-.f input,.ad input,#dt,nav button,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
+.f w-in,.ad w-in,#dt,nav button,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
 .tf{border-radius:0;clip-path:shape(from 0px var(--h), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to var(--h), close)}
 }
 </style>
@@ -143,6 +145,41 @@ html.kbo #tw{opacity:0;pointer-events:none}
 <div id="dg"><div class="sh"><p id="dm"></p><div id="dx"></div><textarea id="dt"></textarea><div class="db"><button id="dd"></button><button id="dc">취소</button><button id="dk">확인</button></div></div></div>
 <script>
 const $=s=>document.querySelector(s);
+/* 입력칸: iOS 자동완성(연락처·주소) 대상이 되는 <input> 대신 편집 가능한 요소를 쓴다 */
+const PT=(()=>{const d=document.createElement('div');d.contentEditable='plaintext-only';return d.contentEditable==='plaintext-only'})();
+class WIn extends HTMLElement{
+  connectedCallback(){
+    if(this._i)return;this._i=1;
+    this.contentEditable=PT?'plaintext-only':'true';
+    this.setAttribute('role','textbox');
+  }
+  get value(){return this.textContent}
+  set value(v){this.textContent=v==null?'':String(v)}
+  get placeholder(){return this.getAttribute('placeholder')||''}
+  set placeholder(v){this.setAttribute('placeholder',v)}
+}
+customElements.define('w-in',WIn);
+function caretEnd(el){
+  try{const r=document.createRange();r.selectNodeContents(el);r.collapse(false);const sl=getSelection();sl.removeAllRanges();sl.addRange(r)}catch(e){}
+}
+document.addEventListener('beforeinput',e=>{
+  if(e.target.matches&&e.target.matches('w-in')&&/^insert(Paragraph|LineBreak)$/.test(e.inputType))e.preventDefault();
+},true);
+document.addEventListener('input',e=>{
+  const t=e.target;if(!t.matches||!t.matches('w-in'))return;
+  let v=t.textContent.replace(/[\r\n]+/g,' ');
+  const im=t.getAttribute('inputmode');
+  if(im==='numeric')v=v.replace(/[^0-9]/g,'');
+  else if(im==='decimal')v=v.replace(/,/g,'.').replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');
+  if(v!==t.textContent){t.textContent=v;caretEnd(t)}
+  if(!v&&t.firstChild)t.textContent='';
+},true);
+document.addEventListener('focusin',e=>{const t=e.target;if(t.matches&&t.matches('w-in'))t._v=t.textContent},true);
+document.addEventListener('focusout',e=>{
+  const t=e.target;if(!t.matches||!t.matches('w-in'))return;
+  if(t._v!==undefined&&t._v!==t.textContent)t.dispatchEvent(new Event('change',{bubbles:true}));
+  t._v=undefined;
+},true);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const uid=()=>Math.random().toString(36).slice(2,8);
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -244,8 +281,8 @@ function swap(c,dir,f){
 }
 
 /* 렌더 */
-const rowHTML=s=>`<div class="r"><span class="n"></span><div class="f"><input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" value="${esc(s.w)}" placeholder="0"></div><u>kg</u><div class="f"><input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" value="${esc(s.r)}" placeholder="0"></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
-const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" value="${esc(e.s)}" placeholder="-"></label><label>각도<input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" value="${esc(e.a)}" placeholder="-"></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map(rowHTML).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
+const rowHTML=s=>`<div class="r"><span class="n"></span><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" placeholder="0">${esc(s.w)}</w-in></div><u>kg</u><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" placeholder="0">${esc(s.r)}</w-in></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
+const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" placeholder="-">${esc(e.s)}</w-in></label><label>각도<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" placeholder="-">${esc(e.a)}</w-in></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map(rowHTML).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
 const PLUS='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const XI='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ic=(d,z)=>'<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
@@ -267,7 +304,7 @@ function build(){
   panels.forEach((p,i)=>{
     p.dataset.i=i;
     const gs=S.tabs[i].g,ai=Math.min((S.sg&&S.sg[i])||0,gs.length-1);
-    p.innerHTML=(gs.length>1?`<div class="sgw"><div class="sg" style="--n:${gs.length};--i:${ai}">${gs.map((g,gi)=>`<button data-a="sg" data-gi="${gi}" class="${gi===ai?'on':''}">${esc(g.n)}</button>`).join('')}</div></div>`:'')+'<div class="ps"><div class="fd"></div>'+gs.map((g,gi)=>`<div class="gw${gi===ai?'':' hid'}" data-g="${gi}"><div class="gl">${g.e.map(cardHTML).join('')}</div><div class="ad"><input type="search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="${g.n?g.n+' ':''}종목 추가" enterkeyhint="done"><button data-a="ax" aria-label="종목 추가">${PLUS}</button></div></div>`).join('')+'</div>';
+    p.innerHTML=(gs.length>1?`<div class="sgw"><div class="sg" style="--n:${gs.length};--i:${ai}">${gs.map((g,gi)=>`<button data-a="sg" data-gi="${gi}" class="${gi===ai?'on':''}">${esc(g.n)}</button>`).join('')}</div></div>`:'')+'<div class="ps"><div class="fd"></div>'+gs.map((g,gi)=>`<div class="gw${gi===ai?'':' hid'}" data-g="${gi}"><div class="gl">${g.e.map(cardHTML).join('')}</div><div class="ad"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="${g.n?g.n+' ':''}종목 추가"></w-in><button data-a="ax" aria-label="종목 추가">${PLUS}</button></div></div>`).join('')+'</div>';
     p.querySelectorAll('.c').forEach(c=>upd(c,fnd(c.dataset.e).e));navState(p);
     {const q=p.querySelector('.ps');q.scrollTop=st[i]||0;q.classList.toggle('sc',q.scrollTop>4)}
   });
@@ -346,7 +383,7 @@ pg.addEventListener('click',async ev=>{
     return;
   }
   if(a==='ax'){
-    const inp=gw.querySelector('.ad input'),n=inp.value.trim();if(!n)return;
+    const inp=gw.querySelector('.ad w-in'),n=inp.value.trim();if(!n)return;
     const e=mk(n);e.o=1;
     S.tabs[+b.closest('.pn').dataset.i].g[+gw.dataset.g].e.push(e);
     const gl=gw.querySelector('.gl');
@@ -393,17 +430,18 @@ pg.addEventListener('input',ev=>{
 pg.addEventListener('focusin',ev=>{
   const t=ev.target;
   if(t.dataset&&(t.dataset.f==='w'||t.dataset.f==='r'))t.dataset.fv=t.value;
-  if(t.matches&&t.matches('input')&&t.closest('.ps'))bring(t);
+  if(t.matches&&t.matches('w-in')&&t.closest('.ps'))bring(t);
 });
 /* 탭: 기본 포커스(화면 튐의 원인) 대신, 먼저 위치를 잡고 스크롤 없이 포커스 */
 let tp=null;
 const KEEP=new Set(['as','ds','ax','up','dn']);
-const typing=()=>{const a=document.activeElement;return a&&a.matches&&a.matches('input')&&a.closest('.ps')?a:null};
+const typing=()=>{const a=document.activeElement;return a&&a.matches&&a.matches('w-in')&&a.closest('.ps')?a:null};
 pg.addEventListener('touchstart',e=>{
   const t=e.target;tp=null;
   if(e.touches.length!==1)return;
   const xy={x:e.touches[0].clientX,y:e.touches[0].clientY};
-  if(t.matches&&t.matches('input')&&t.closest('.ps')&&document.activeElement!==t)tp={...xy,t};
+  const wi=t.closest&&(t.closest('w-in')||(t.closest('.m label')&&t.closest('.m label').querySelector('w-in')));
+  if(wi&&wi.closest('.ps')&&document.activeElement!==wi)tp={...xy,t:wi};
   else{const b=t.closest&&t.closest('[data-a]');if(b&&KEEP.has(b.dataset.a)&&typing())tp={...xy,b}}
 },{passive:true});
 pg.addEventListener('touchend',e=>{
@@ -415,7 +453,7 @@ pg.addEventListener('touchend',e=>{
   const t=q.t;
   bring(t);
   t.focus({preventScroll:true});
-  try{const n=t.value.length;t.setSelectionRange(n,n)}catch(x){}
+  caretEnd(t);
 },{passive:false});
 
 pg.addEventListener('change',ev=>{
@@ -424,7 +462,9 @@ pg.addEventListener('change',ev=>{
   commit(e);upd(c,e);save();
 });
 pg.addEventListener('keydown',ev=>{
-  if(ev.key==='Enter'&&ev.target.closest('.ad')){ev.preventDefault();ev.target.nextElementSibling.click()}
+  if(ev.key!=='Enter'||!ev.target.matches||!ev.target.matches('w-in'))return;
+  ev.preventDefault();
+  if(ev.target.closest('.ad'))ev.target.nextElementSibling.click();else ev.target.blur();
 });
 /* 종목 길게 누르기: 이름 편집·삭제 메뉴 */
 let lt=0,lp=0,lx=0,ly=0,lc=null;
@@ -505,13 +545,13 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106c';
+const BUILD='20261106d';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
     const t=await (await fetch('index.html',{cache:'no-store'})).text(),m=t.match(/const BUILD='([^']+)'/);
     const a=document.activeElement;
-    if(m&&m[1]!==BUILD&&!(a&&a.matches&&a.matches('input,textarea')))location.reload();
+    if(m&&m[1]!==BUILD&&!(a&&a.matches&&a.matches('input,textarea,w-in')))location.reload();
   }catch(e){}
 }
 addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});addEventListener('pageshow',chk);
@@ -555,27 +595,33 @@ try{kbMax=+localStorage.getItem('wkb')||0}catch(e){}
 const est=()=>kbNow>50?kbNow:(kbMax||345);
 const root=document.documentElement;
 function setPad(){root.style.setProperty('--kp',(est()+230)+'px')}
-/* 목록 스크롤/여백 변화는 모두 이 함수로: 스크롤 값은 즉시 바꾸고, 화면에서는 같은 거리만큼을
-   GPU 변형(transform)으로 이어서 감속시킨다. 도중에 다시 불려도 현재 보이는 위치에서 이어진다. */
-const FEZ='cubic-bezier(.33,0,.15,1)';
-function flip(p,fn){
-  const gw=p&&p.querySelector('.gw:not(.hid)');
-  if(!gw||!DUR||!gw.animate){fn();return}
-  const r0=gw.getBoundingClientRect().top;
-  if(p._fa){p._fa.cancel();p._fa=null}
-  fn();
-  const off=r0-gw.getBoundingClientRect().top;
-  if(Math.abs(off)<1)return;
-  p._fa=gw.animate([{transform:'translateY('+off+'px)'},{transform:'none'}],{duration:Math.round(Math.min(560,300+Math.abs(off)*.4)),easing:FEZ});
-}
+/* 목록 스크롤: 브라우저 기본 부드러운 스크롤을 사용(입력 커서가 함께 움직임) */
 function smoothTo(p,to){
-  flip(p,()=>{p.scrollTop=Math.max(0,Math.min(p.scrollHeight-p.clientHeight,to))});
+  if(!p)return;
+  to=Math.max(0,Math.min(p.scrollHeight-p.clientHeight,Math.round(to)));
+  if(Math.abs(to-p.scrollTop)<1)return;
+  if(!DUR||!p.scrollTo){p.scrollTop=to;return}
+  p.scrollTo({top:to,behavior:'smooth'});
 }
 const curPs=()=>{const pn=panels&&panels[cur];return pn&&pn.querySelector('.ps')};
-let idle=false,idleT=0;
+let idle=false,idleT=0,relRaf=0;
+/* 키보드가 내려가면: 남는 여백만큼 먼저 부드럽게 올려 놓은 뒤 여백을 걷어낸다(순간이동 없음) */
 function release(){
-  idle=false;clearTimeout(idleT);
-  flip(curPs(),()=>{root.style.removeProperty('--kp');root.style.setProperty('--kb','0px')});
+  idle=false;clearTimeout(idleT);cancelAnimationFrame(relRaf);
+  root.classList.remove('kbo');
+  const p=curPs(),done=()=>{root.style.removeProperty('--kp');root.style.setProperty('--kb','0px')};
+  if(!p){done();return}
+  const pad=parseFloat(getComputedStyle(p).paddingBottom)||0,extra=Math.max(0,pad-40);
+  const max=p.scrollHeight-p.clientHeight-extra;
+  if(extra<1||p.scrollTop<=max+1||!DUR){done();return}
+  smoothTo(p,max);
+  const t0=performance.now();
+  const wait=()=>{
+    if(document.activeElement&&document.activeElement.matches&&document.activeElement.matches('w-in'))return;
+    if(p.scrollTop<=max+1||performance.now()-t0>900){if(p.scrollTop>max+1)p.scrollTop=max;done();return}
+    relRaf=requestAnimationFrame(wait);
+  };
+  relRaf=requestAnimationFrame(wait);
 }
 /* 입력칸을 '상단 탭 아래 ~ 키보드 위' 영역의 가운데로 */
 function bring(el,force){
@@ -591,7 +637,7 @@ function bring(el,force){
 }
 const hard=t=>{
   if(!t||!t.setAttribute||t._h)return;
-  if(t.matches&&t.matches('input,textarea')){
+  if(t.matches&&t.matches('input,textarea,w-in')){
     t.setAttribute('autocomplete','off');t.setAttribute('autocorrect','off');
     t.setAttribute('autocapitalize','off');t.setAttribute('spellcheck','false');
     t.setAttribute('data-lpignore','true');t.setAttribute('data-form-type','other');
@@ -601,11 +647,11 @@ const hard=t=>{
 document.addEventListener('touchstart',e=>hard(e.target),{capture:true,passive:true});
 document.addEventListener('focusin',e=>{
   hard(e.target);
-  if(e.target.matches&&e.target.matches('input,textarea')){idle=false;clearTimeout(idleT);root.classList.add('kbo')}
+  if(e.target.matches&&e.target.matches('input,textarea,w-in')){idle=false;clearTimeout(idleT);root.classList.add('kbo')}
 },true);
 document.addEventListener('focusout',()=>setTimeout(()=>{
   const a=document.activeElement;
-  if(a&&a.matches&&a.matches('input,textarea'))return;
+  if(a&&a.matches&&a.matches('input,textarea,w-in'))return;
   root.classList.remove('kbo');
   idle=true;
   if(kbNow<50)release();else{clearTimeout(idleT);idleT=setTimeout(()=>{if(idle)release()},900)}
@@ -613,23 +659,28 @@ document.addEventListener('focusout',()=>setTimeout(()=>{
 function pin(){
   if(!vv)return;
   const off=Math.max(0,vv.offsetTop),kb=Math.max(0,innerHeight-vv.height-off);
-  if(!(idle&&kb<50)){const was0=kbNow;if(Math.round(kb)!==Math.round(was0))flip(curPs(),()=>root.style.setProperty('--kb',kb+'px'));else root.style.setProperty('--kb',kb+'px')}
+  if(kb>=50||!root.style.getPropertyValue('--kp'))root.style.setProperty('--kb',kb+'px');
   document.body.style.transform=off?'translate3d(0,'+off+'px,0)':'';
   if(scrollY||scrollX)scrollTo(0,0);
   const was=kbNow;kbNow=kb;
-  if(idle&&kb<50)release();
+  if(was>=50&&kb<50){
+    /* 키보드가 닫혔으면 포커스 상태와 상관없이 정리(타이머 복귀·여백 해제) */
+    const a=document.activeElement;
+    if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.ps'))a.blur();
+    release();
+  }else if(idle&&kb<50)release();
   if(kb>200&&Math.abs(kb-was)>20){
     const same=Math.abs(kb-(kbMax||345))<14&&was<50;
     kbMax=kb;try{localStorage.setItem('wkb',kb)}catch(e){}
     const a=document.activeElement;
-    if(!same&&a&&a.matches&&a.matches('input')&&a.closest('.ps')){clearTimeout(sT);sT=setTimeout(()=>{if(document.activeElement===a)bring(a,1)},80)}
+    if(!same&&a&&a.matches&&a.matches('w-in')&&a.closest('.ps')){clearTimeout(sT);sT=setTimeout(()=>{if(document.activeElement===a)bring(a,1)},80)}
   }
 }
 if(vv){vv.addEventListener('resize',pin);vv.addEventListener('scroll',pin)}
 addEventListener('scroll',()=>{if(scrollY||scrollX)scrollTo(0,0)});
 /* 탭 아래로 스크롤되는 목록은 페이드 아웃 */
 pg.addEventListener('scroll',ev=>{const p=ev.target;if(p.classList&&p.classList.contains('ps'))p.classList.toggle('sc',p.scrollTop>4)},true);
-const SQ='.f input,.ad input,#dt,nav button,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button,.tf';
+const SQ='.f w-in,.ad w-in,#dt,nav button,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button,.tf';
 const sqro=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>{
   const t=e.target,b=Array.isArray(e.borderBoxSize)?e.borderBoxSize[0]:e.borderBoxSize;
   t.style.setProperty('--w',(b?b.inlineSize:t.offsetWidth)+'px');
