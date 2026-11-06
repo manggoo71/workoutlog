@@ -11,8 +11,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1d23" media="(prefers-color-scheme: dark)">
 <style>
 :root{--bg:#eceef2;--cd:#fff;--tx:#14181f;--mu:#868c97;--ln:#e3e6ec;--ac:#2f5bff;--ac2:#e8edff;--dg:#e5484d;--in:#f3f5f8;--d:.34s;--e:cubic-bezier(.32,.72,0,1);--rb:14px;--sh:rgba(20,24,31,.13);
 box-sizing:border-box}
@@ -35,7 +35,7 @@ nav button.on{background:var(--ac);color:#fff}
 #pg{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
 #pg::-webkit-scrollbar{display:none}
 .pn{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;padding:0 12px}
-.ps{position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + max(var(--kb,0px),var(--kp,0px)))}
+.ps{position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(40px + var(--kp,0px))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
 .c{background:var(--cd);--r:18px;border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .34s cubic-bezier(.3,0,.2,1)}
 .c.rm{pointer-events:none}
@@ -341,6 +341,13 @@ $('#tb').onclick=e=>{
 };
 pg.addEventListener('scroll',()=>{
   if(building)return;
+  if(!tabMove&&Math.abs(pg.scrollLeft-cur*pg.clientWidth)>24){
+    const a=document.activeElement;
+    if(a&&a.matches&&a.matches('w-in,input,textarea')&&a.closest('.pn')){
+      tabMove=1;navT=performance.now();clearTimeout(tabT);a.blur();root.classList.remove('kbo');
+      tabT=setTimeout(()=>{tabMove=0;hardRelease()},700);
+    }
+  }
   const i=Math.round(pg.scrollLeft/pg.clientWidth);
   if(i!==cur&&i>=0&&i<S.tabs.length){cur=i;S.t=i;lsave()}
   mark();
@@ -437,6 +444,7 @@ pg.addEventListener('click',async ev=>{
     const open=!c.classList.contains('o');
     if(DUR){
       /* 짧게 탭해도 눌렸다가 탄력 있게 돌아오는 느낌이 보이도록 */
+      clearTimeout(c._pt);
       const m=getComputedStyle(c).transform,from=m&&m!=='none'?m:'none';
       c.style.transition='none';c.classList.remove('pr');
       const an=c.animate([{transform:from},{transform:'scale(.958)',offset:.32,easing:'cubic-bezier(.3,0,.2,1)'},{transform:'scale(1)'}],{duration:DUR,easing:'linear'});
@@ -580,9 +588,12 @@ pg.addEventListener('pointerdown',ev=>{
 pg.addEventListener('pointermove',ev=>{
   if(lt&&(Math.abs(ev.clientX-lx)>10||Math.abs(ev.clientY-ly)>10)){clearTimeout(lt);lt=0;if(lc)lc.classList.remove('pr')}
 });
-const lup=()=>{
+const lup=ev=>{
   clearTimeout(lt);lt=0;
-  if(lc)lc.classList.remove('pr');
+  if(lc){
+    if(ev&&ev.type==='pointerup'&&!lp){const c=lc;clearTimeout(c._pt);c._pt=setTimeout(()=>c.classList.remove('pr'),450)}
+    else lc.classList.remove('pr');
+  }
   lc=null;
   if(lp)setTimeout(()=>{lp=0;dgEl.classList.remove('hold')},400);
 };
@@ -642,7 +653,7 @@ $('#ti').onclick=()=>{
 
 build();mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
-const BUILD='20261106j';
+const BUILD='20261106k';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -693,7 +704,11 @@ const est=()=>kbNow>50?kbNow:(kbMax||345);
 const root=document.documentElement;
 function dkSet(v){root.style.setProperty('--dk',Math.max(0,v)+'px')}
 document.addEventListener('focusout',e=>{if(e.target&&e.target.id==='dt')setTimeout(()=>{if(document.activeElement!==$('#dt'))dkSet(0)},60)},true);
-function setPad(){root.style.setProperty('--kp',(est()+230)+'px')}
+function setPad(p){
+  p=p||curPs();if(!p)return;
+  const pr=p.getBoundingClientRect(),kt=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
+  root.style.setProperty('--kp',Math.max(0,Math.round(pr.bottom-kt+24-40))+'px');
+}
 /* 목록 스크롤: 브라우저 기본 부드러운 스크롤을 사용(입력 커서가 함께 움직임) */
 function smoothTo(p,to){
   if(!p)return;
@@ -737,7 +752,7 @@ function bring(el,force,soft){
   }
   if(!force&&p._be===el&&performance.now()-p._bt<450)return;
   p._be=el;p._bt=performance.now();
-  setPad();
+  setPad(p);
   const r=el.getBoundingClientRect(),pr=p.getBoundingClientRect();
   const bottom=kbNow>50&&vv?vv.offsetTop+vv.height:innerHeight-est();
   const d=(r.top+r.bottom)/2-(pr.top+Math.min(bottom,pr.bottom))/2;
