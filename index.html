@@ -386,10 +386,19 @@ function sgSet(ti,gi){
   });
   const ps=p.querySelector('.ps');if(ps){ps.scrollTop=0;ps.classList.remove('sc')}
 }
+/* 오늘 가슴·등 탭에서 무엇이든 하면(종목 추가·삭제·이름 변경, 세트 추가·삭제, 무게·횟수·높이·각도 입력, 펼치기·접기)
+   그 부위를 한 날로 본다. 둘 다 했으면 마지막에 한 쪽. 날짜가 바뀌면 다시 이두가 기본. */
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+function act(pn){
+  if(!pn||!pn.dataset)return;const n=S.tabs[+pn.dataset.i]&&S.tabs[+pn.dataset.i].n;
+  if(n!=='가슴'&&n!=='등')return;
+  const d=today();if(S.lr&&S.lr.n===n&&S.lr.d===d)return;
+  S.lr={n,d};lsave();armRule();
+}
 function armRule(force){
   const i=S.tabs.findIndex(t=>t.n==='팔');if(i<0||!panels[i]||S.tabs[i].g.length<2)return;
   if(!force&&Math.abs(pg.scrollLeft-i*pg.clientWidth)<pg.clientWidth-1)return;
-  const want=S.lr==='가슴'?1:0;
+  const want=S.lr&&S.lr.d===today()&&S.lr.n==='가슴'?1:0;
   if(((S.sg&&S.sg[i])||0)!==want){sgSet(i,want);lsave()}
 }
 function mark(noInd){[...$('#tb').querySelectorAll('button')].forEach((b,i)=>{if(b.classList.contains('on')!==(i===(tabGo>=0?tabGo:cur)))b.classList.toggle('on',i===(tabGo>=0?tabGo:cur))});if(tabGo<0&&!noInd)ind()}
@@ -518,6 +527,7 @@ function dlg(m,o){
 pg.addEventListener('click',async ev=>{
   if(lp)return;
   const b=ev.target.closest('[data-a]');if(!b)return;
+  act(b.closest('.pn'));
   const a=b.dataset.a,gw=b.closest('.gw');
   if(a==='sg'){
     const p=b.closest('.pn'),ti=+p.dataset.i,gi=+b.dataset.gi,sg=b.parentNode;
@@ -608,6 +618,7 @@ pg.addEventListener('click',async ev=>{
   }
 });
 pg.addEventListener('input',ev=>{
+  act(ev.target.closest&&ev.target.closest('.pn'));
   const ad=ev.target.closest('.ad');
   if(ad){ad.classList.toggle('has',ev.target.value.trim()!=='');return}
   const f=ev.target.dataset.f;if(!f)return;
@@ -764,7 +775,6 @@ document.addEventListener('focusin',e=>{
 pg.addEventListener('change',ev=>{
   const f=ev.target.dataset&&ev.target.dataset.f;if(f!=='w'&&f!=='r')return;
   const c=ev.target.closest('.c'),e=fnd(c.dataset.e).e;
-  const pn=c.closest('.pn');if(pn){S.lr=S.tabs[+pn.dataset.i].n;armRule()}
   commit(e);upd(c,e);save();
 });
 pg.addEventListener('keydown',ev=>{
@@ -776,15 +786,15 @@ pg.addEventListener('keydown',ev=>{
 let lt=0,lp=0,lx=0,ly=0,lc=null;
 const dgEl=$('#dg');
 async function editEx(c){
-  const e=fnd(c.dataset.e).e,v=await dlg('종목 편집',{ta:e.n,h:'56px',ok:'저장',del:'삭제'});
+  const pn=c.closest('.pn'),e=fnd(c.dataset.e).e,v=await dlg('종목 편집',{ta:e.n,h:'56px',ok:'저장',del:'삭제'});
   if(v==='del'){
     if(await dlg('“'+e.n+'” 종목을 삭제할까요?',{ok:'삭제',danger:1})){
       const g=fnd(e.id);if(!g)return;
-      const gl=c.parentNode;g.g.splice(g.i,1);exit(c);navState(gl);save();
+      const gl=c.parentNode;g.g.splice(g.i,1);exit(c);navState(gl);act(pn);save();
     }
   }else if(typeof v==='string'){
     const n=v.replace(/\s+/g,' ').trim();
-    if(n){e.n=n;c.querySelector('.t b').textContent=n;save()}
+    if(n){e.n=n;c.querySelector('.t b').textContent=n;act(pn);save()}
   }
 }
 pg.addEventListener('pointerdown',ev=>{
@@ -965,7 +975,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107zc';
+const BUILD='20261107zd';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
