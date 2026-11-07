@@ -139,6 +139,8 @@ body{timeline-scope:--pg}
 .gw.hid{display:none}
 .fd{position:sticky;top:0;height:0;z-index:3}
 .fd~.gw{padding-top:4px}
+/* 종목이 적어 스크롤할 내용이 없어도 iOS 목록처럼 위아래로 당기면 튕기도록: 목록을 항상 화면보다 1px 길게 */
+.fd~.gw{min-height:calc(100% + 1px)}
 /* 상단 페이드: 목록 자체를 알파 마스크로 투명하게(위 끝 0% → 28px에서 100%).
    --fa는 위 끝의 불투명도: 맨 위(스크롤 0)면 1(페이드 없음), 스크롤한 만큼 0까지 연속으로 줄어든다. */
 @property --fa{syntax:'<number>';inherits:false;initial-value:1}
@@ -1208,7 +1210,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261107zm';
+const BUILD='20261107zn';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
