@@ -82,6 +82,11 @@ body{timeline-scope:--pg}
 .f .hit{position:absolute;inset:0;z-index:1;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;cursor:text}
 .f w-in{line-height:54px;--r:var(--rb);height:54px;font-size:24px;font-weight:700;text-align:center;width:100%}
 .f w-in:empty::before{color:var(--mu);opacity:.5;font-weight:600;position:absolute;left:0;right:0;top:0;text-align:center}
+.f w-in.phz:empty::before{animation:phz .32s .12s cubic-bezier(.3,0,.2,1) backwards}
+@keyframes phz{from{opacity:0}}
+.pz{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:3}
+.pz .gh{position:absolute;left:0;top:0;display:block;text-align:center;white-space:nowrap}
+.pz i{position:absolute;display:block;border-radius:50%}
 .f w-in{position:relative;caret-color:transparent;touch-action:manipulation;-webkit-touch-callout:none}
 .f w-in:focus::after{content:"";display:inline-block;width:2px;height:.94em;margin:0 -1px;vertical-align:-.11em;border-radius:1px;background:var(--ac);animation:cb 1.06s ease-in-out infinite}
 .f w-in:not(:empty):focus::after{margin:0 -3px 0 1px}
@@ -233,6 +238,8 @@ document.addEventListener('input',e=>{
   if(t.parentNode&&t.parentNode.classList.contains('f'))t.classList.toggle('ty');
 },true);
 document.addEventListener('focusin',e=>{const t=e.target;if(t.matches&&t.matches('w-in'))t._v=t.textContent},true);
+document.addEventListener('input',e=>{const t=e.target;if(t.classList&&t.classList.contains('phz')&&t.textContent)t.classList.remove('phz')},true);
+document.addEventListener('focusout',e=>{const t=e.target;if(t.classList)t.classList.remove('phz')},true);
 document.addEventListener('focusout',e=>{
   const t=e.target;if(!t.matches||!t.matches('w-in'))return;
   if(t._dirty||(t._v!==undefined&&t._v!==t.textContent))t.dispatchEvent(new Event('change',{bubbles:true}));
@@ -801,8 +808,64 @@ pg.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('.f .
 /* 커서가 있는 무게·횟수 칸을 한 번 더 탭: 내용을 지우고(지우기 전 값은 흐린 글자로 남김) 커서를 둔다 */
 function clearField(t){
   if(t.value==='')return;
+  if(DUR)burst(t);
   t.dataset.fv=t.value;t.textContent='';t._dirty=1;
+  t.classList.add('phz');
   t.dispatchEvent(new Event('input',{bubbles:true}));
+}
+/* ── 숫자 지우기: 파티클로 터지며 사방으로 흩어짐 ──
+   숫자를 같은 글꼴로 캔버스에 그려 글자가 있는 자리에서 점(최대 약 240개)을 뽑고, 숫자는 바로 지운다.
+   원래 숫자는 0.09초 동안 살짝 커지며 사라지고, 점들은 중심에서 퍼지는 속도 + 무작위 방향으로 감속하며 날아가 사라진다.
+   궤적은 미리 계산한 키프레임으로 transform·opacity만 움직인다(합성기, 120Hz). */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function burst(f){
+  const text=f.textContent;if(!text)return;
+  const cs=getComputedStyle(f),W=f.clientWidth,H=f.clientHeight,S=3;
+  if(!W||!H)return;
+  const cv=document.createElement('canvas');cv.width=W*S;cv.height=H*S;
+  const x=cv.getContext('2d');if(!x)return;x.scale(S,S);
+  x.font=cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;x.textAlign='center';x.textBaseline='alphabetic';x.fillStyle='#000';
+  const m=x.measureText(text),asc=m.fontBoundingBoxAscent||m.actualBoundingBoxAscent||0,des=m.fontBoundingBoxDescent||m.actualBoundingBoxDescent||0;
+  const lh=parseFloat(cs.lineHeight)||H;
+  /* 글자마다 화면의 실제 자리(고정폭 숫자 포함)에 맞춰 그린다 */
+  const by=(lh-(asc+des))/2+asc,fr=f.getBoundingClientRect(),tn=f.firstChild;
+  if(tn&&tn.nodeType===3&&tn.length===text.length){
+    const rg=document.createRange();
+    for(let k=0;k<text.length;k++){rg.setStart(tn,k);rg.setEnd(tn,k+1);const q=rg.getBoundingClientRect();x.fillText(text[k],q.left-fr.left+q.width/2,q.height?q.top-fr.top+(q.height-(asc+des))/2+asc:by)}
+  }else x.fillText(text,W/2,by);
+  const d=x.getImageData(0,0,cv.width,cv.height).data;
+  const hit=(px,py)=>{const X=Math.round(px*S),Y=Math.round(py*S);return X>=0&&Y>=0&&X<cv.width&&Y<cv.height&&d[(Y*cv.width+X)*4+3]>110};
+  let area=0;for(let py=0;py<H;py++)for(let px=0;px<W;px++)if(hit(px,py))area++;
+  const st=Math.max(1.15,Math.sqrt(area/240)),pts=[];
+  for(let py=st/2;py<H;py+=st)for(let px=st/2;px<W;px+=st)if(hit(px,py))pts.push([px+rnd(-.25,.25)*st,py+rnd(-.25,.25)*st]);
+  if(!pts.length)return;
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
+  const cx=(x0+x1)/2,cy=(y0+y1)/2,rc=f.getBoundingClientRect(),br=document.body.getBoundingClientRect(),col=cs.color,sz=st*1.45;
+  const box=document.createElement('div');box.className='pz';
+  box.style.transform='translate('+(rc.left-br.left).toFixed(2)+'px,'+(rc.top-br.top).toFixed(2)+'px)';
+  const gh=document.createElement('span');gh.className='gh';gh.textContent=text;
+  gh.style.cssText='width:'+W+'px;height:'+H+'px;line-height:'+cs.lineHeight+';color:'+col;
+  gh.style.fontFamily=cs.fontFamily;gh.style.fontSize=cs.fontSize;gh.style.fontWeight=cs.fontWeight;gh.style.letterSpacing=cs.letterSpacing;
+  box.appendChild(gh);
+  const list=[],N=12;let end=0;
+  pts.forEach(p=>{
+    const a=rnd(0,6.283),e=rnd(3,8.5),r=rnd(25,190),L=rnd(.36,.7);
+    const vx=(p[0]-cx)*e+Math.cos(a)*r,vy=(p[1]-cy)*e*1.3+Math.sin(a)*r*.8,k=6.5,g=70,s1=.3,fo=.22;
+    const i=document.createElement('i');
+    i.style.cssText='left:'+(p[0]-sz/2).toFixed(2)+'px;top:'+(p[1]-sz/2).toFixed(2)+'px;width:'+sz.toFixed(2)+'px;height:'+sz.toFixed(2)+'px;background:'+col;
+    box.appendChild(i);
+    const kf=[];
+    for(let j=0;j<=N;j++){
+      const t=L*j/N,q=(1-Math.exp(-k*t))/k,u=t/L;
+      const op=(u<fo?1:1-Math.pow((u-fo)/(1-fo),1.6))*(j===0?.55:1);
+      kf.push({transform:'translate('+(vx*q).toFixed(2)+'px,'+(vy*q+g*t*t/2).toFixed(2)+'px) scale('+(1+(s1-1)*u).toFixed(3)+')',opacity:+Math.max(0,op).toFixed(3)});
+    }
+    end=Math.max(end,L*1000);list.push([i,kf,L*1000]);
+  });
+  document.body.appendChild(box);
+  gh.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.05)'}],{duration:90,easing:'cubic-bezier(.3,0,.2,1)',fill:'forwards'});
+  list.forEach(([i,kf,du])=>i.animate(kf,{duration:du,easing:'linear',fill:'forwards'}));
+  setTimeout(()=>box.remove(),end+80);
 }
 const kx=document.createElement('w-in');kx.id='kx';
 ['autocomplete','autocorrect','autocapitalize'].forEach(a=>kx.setAttribute(a,'off'));kx.setAttribute('spellcheck','false');kx.setAttribute('aria-hidden','true');
@@ -1085,7 +1148,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107zf';
+const BUILD='20261107zg';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
