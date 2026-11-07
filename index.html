@@ -60,6 +60,9 @@ body{timeline-scope:--pg}
 .m{display:flex;gap:8px;padding:6px var(--cp) var(--cp)}
 .m label{flex:1;display:flex;align-items:center;gap:8px;background:var(--in);--r:var(--rb);border-radius:var(--r);padding-left:12px;color:var(--mu);font-size:13px;white-space:nowrap}
 .m w-in{line-height:40px;flex:1;width:100%;height:40px;background:transparent;border-radius:0;padding:0 10px 0 0;font-size:16px;font-weight:600}
+/* 칸 가운데에 맞추기(아이폰 화면에서 잰 값): 이름은 0.5pt 아래로, 빈 값 표시(-)는 1.33pt 위로 */
+.m .ml{display:block;transform:translateY(.5px)}
+.m w-in:empty::before{display:inline-block;transform:translateY(-1.33px)}
 .ss{display:grid;grid-template-rows:0fr;visibility:hidden}
 .c.o .ss{grid-template-rows:1fr;visibility:visible}
 .si{overflow:hidden;min-height:0;opacity:0}
@@ -77,6 +80,7 @@ body{timeline-scope:--pg}
 .n::before{content:counter(s)}
 .r .n{color:var(--mu);font-weight:700;text-align:center;line-height:54px;transition:color .25s cubic-bezier(.25,1,.5,1)}
 .r.cur .n{color:var(--ac)}
+.r.cur .f w-in{background:var(--ac2)}
 .r u{text-decoration:none;color:var(--mu);font-size:13px;line-height:54px}
 .f{position:relative;display:flex;flex-direction:column;min-width:0}
 .f .hit{position:absolute;inset:0;z-index:1;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;cursor:text}
@@ -443,7 +447,7 @@ function swap(c,dir,f){
 
 /* 렌더 */
 const rowHTML=(s,cu)=>`<div class="r${cu?' cur':''}"><span class="n"></span><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="decimal" data-f="w" placeholder="0">${esc(s.w)}</w-in><b class="hit"></b></div><u>kg</u><div class="f"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" inputmode="numeric" data-f="r" placeholder="0">${esc(s.r)}</w-in><b class="hit"></b></div><u>회</u><button class="ib2" data-a="ds" aria-label="세트 삭제">${XI}</button></div>`;
-const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label>높이<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" placeholder="-">${esc(e.s)}</w-in></label><label>각도<w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" placeholder="-">${esc(e.a)}</w-in></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map((s,i)=>rowHTML(s,i===e.ls)).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
+const cardHTML=e=>`<div class="c${e.o?' o':''}" data-e="${e.id}"><div class="h" data-a="tg"><div class="t"><b>${esc(e.n)}</b><small class="cn"></small></div><button class="ib2 sm gh" data-a="up" aria-label="위로">${UP}</button><button class="ib2 sm gh" data-a="dn" aria-label="아래로">${DN}</button></div><div class="m"><label><span class="ml">높이</span><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="s" placeholder="-">${esc(e.s)}</w-in></label><label><span class="ml">각도</span><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" data-f="a" placeholder="-">${esc(e.a)}</w-in></label></div><div class="ss"><div class="si"><div class="sp"><div class="sl">${e.sets.map((s,i)=>rowHTML(s,i===e.ls)).join('')}</div><div class="bt"><button class="ib2 pls" data-a="as" aria-label="세트 추가">${PLUS}</button></div></div></div></div></div>`;
 const PLUS='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const XI='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const ic=(d,z)=>'<svg width="'+z+'" height="'+z+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="'+d+'"/></svg>';
@@ -1148,7 +1152,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107zg';
+const BUILD='20261107zh';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1250,6 +1254,9 @@ async function voLoad(){
 }
 function voWake(){if(document.hidden)return;const c=voCtx();if(!c)return;if(c.state!=='running')c.resume().catch(()=>{});if(!VO.buf)voLoad()}
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,voWake,{capture:true,passive:true}));
+/* 앱으로 돌아오면 멈춰 있던 오디오를 바로 다시 깨운다(한 번 허락된 뒤라 탭 없이도 된다) */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&VO.ctx&&VO.ctx.state!=='running')VO.ctx.resume().catch(()=>{})});
+addEventListener('pageshow',()=>{if(VO.ctx&&VO.ctx.state!=='running')VO.ctx.resume().catch(()=>{})});
 const voEar=()=>{const c=VO.ctx;return !!c&&c.state==='running'&&typeof c.outputLatency==='number'&&c.outputLatency>=.07};
 function voPlay(i,dl){
   const c=VO.ctx;if(!c||!VO.buf||!VSEG[i]||document.hidden||!voEar())return;
