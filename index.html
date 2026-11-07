@@ -43,7 +43,7 @@ body{timeline-scope:--pg}
 .ps::-webkit-scrollbar{display:none;width:0;height:0}
 .ps{scrollbar-width:none;position:relative;overflow-anchor:none;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(var(--pb,124px) + var(--kp,0px))}
 .gt{margin:14px 4px 8px;font-size:15px;font-weight:700;color:var(--mu)}
-.c{background:var(--cd);--r:calc(var(--rb) + var(--cp));border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .34s cubic-bezier(.3,0,.2,1)}
+.c{position:relative;background:var(--cd);--r:calc(var(--rb) + var(--cp));border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:transform .34s cubic-bezier(.3,0,.2,1)}
 .c.rm{pointer-events:none}
 .h{display:flex;align-items:center;gap:6px;padding:10px 10px 0 16px;min-height:64px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .t{flex:1;min-width:0}
@@ -60,10 +60,16 @@ body{timeline-scope:--pg}
 .m{display:flex;gap:8px;padding:6px var(--cp) var(--cp)}
 .m label{flex:1;display:flex;align-items:center;gap:8px;background:var(--in);--r:var(--rb);border-radius:var(--r);padding-left:12px;color:var(--mu);font-size:13px;white-space:nowrap}
 .m w-in{line-height:40px;flex:1;width:100%;height:40px;background:transparent;border-radius:0;padding:0 10px 0 0;font-size:16px;font-weight:600}
-.ss{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows var(--d) var(--e),visibility 0s linear var(--d)}
-.c.o .ss{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows var(--d) var(--e),visibility 0s}
-.si{overflow:hidden;min-height:0;opacity:0;transition:opacity var(--d) var(--e)}
+.ss{display:grid;grid-template-rows:0fr;visibility:hidden}
+.c.o .ss{grid-template-rows:1fr;visibility:visible}
+.si{overflow:hidden;min-height:0;opacity:0}
 .c.o .si{opacity:1}
+/* 움직이는 동안: 카드 자체 배경 대신 조각 배경, 세트 목록은 잘라내는 상자 */
+.c.fl{background:transparent;clip-path:none;overflow:visible;isolation:isolate}
+.c.fl .ss{grid-template-rows:1fr;visibility:visible;overflow:hidden}
+.c.fl .si{opacity:1}
+.cq{display:none;position:absolute;left:0;top:0;width:100%;background:var(--cd);pointer-events:none;z-index:-1;transform-origin:0 0}
+.c.fl .cq{display:block}
 .sp{border-top:1px solid var(--ln);padding:10px var(--cp) var(--cp)}
 .sl{counter-reset:s}
 .r{counter-increment:s;display:grid;grid-template-columns:26px 1fr 24px 1fr 24px 52px;align-items:start;gap:4px;margin-bottom:8px}
@@ -88,7 +94,7 @@ body{timeline-scope:--pg}
 .ib2:active{opacity:.7}
 .bt{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
 .ad{position:relative;display:flex;margin-top:4px}
-.ad w-in{line-height:52px;flex:1;height:52px;padding:0 22px;--r:26px;font-size:17px;background:var(--cd);transition:padding-right var(--d) var(--e)}
+.ad w-in{line-height:52px;flex:1;height:52px;padding:0 22px;--r:26px;font-size:17px;background:var(--cd)}
 .ad.has w-in{padding-right:56px}
 .ad button{position:absolute;right:0;top:0;width:52px;height:52px;padding:0;background:none;color:var(--ac);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.6);visibility:hidden;transition:opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s linear var(--d)}
 .ad.has button{opacity:1;transform:none;visibility:visible;transition:opacity var(--d) var(--e),transform var(--d) var(--e),visibility 0s}
@@ -153,9 +159,9 @@ html.kbo #tw{opacity:0;pointer-events:none}
 html.kbo #fb{opacity:0}
 .tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px}
 .tl{display:contents}
-.spn{display:inline-flex;width:0;opacity:0;overflow:hidden;color:var(--mu);transition:opacity .2s,width .25s var(--e)}
+.spn{display:inline-flex;position:absolute;left:100%;top:50%;margin-top:-10px;width:20px;height:20px;align-items:center;opacity:0;color:var(--mu);transition:opacity .2s}
 .spn svg{flex:none;margin-left:6px;animation:spn .9s steps(8) infinite}
-html.bkp .spn{width:20px;opacity:1}
+html.bkp .spn{opacity:1}
 html.bkp #wk{pointer-events:none}
 #tm{transition:color .2s}#tm.z{color:var(--mu)}
 #wk.on{color:var(--tx)}
@@ -173,7 +179,7 @@ html.bkp #wk{pointer-events:none}
 @property --h{syntax:'<length-percentage>';inherits:false;initial-value:100%}
 /* iOS 연속 곡률(스쿼클, G2): 라운드 요소는 --r 만 지정. 새 요소는 이 목록에 선택자를 추가 */
 @supports (clip-path:shape(from 0px 0px,hline to calc(100% - 1px),curve by 1px 1px with 0px 0px / 1px 0px,arc by 1px 1px of 1px cw,vline to 100%,close)){
-.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button,#tw .tbg{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
+.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.c .cqc,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.sg::before,.mn button,#tw .tbg{border-radius:0;clip-path:shape(from calc(var(--r) * 1.60000) 0px, hline to calc(var(--w) - var(--r) * 1.60000), curve by calc(var(--r) * 1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * 0.56005) 0px / calc(var(--r) * 0.84008) 0px, arc by calc(var(--r) * 0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * 0.10899) calc(var(--r) * 1.05399) with calc(var(--r) * 0.10899) calc(var(--r) * 0.21391) / calc(var(--r) * 0.10899) calc(var(--r) * 0.49394), vline to calc(var(--h) - var(--r) * 1.60000), curve by calc(var(--r) * -0.10899) calc(var(--r) * 1.05399) with 0px calc(var(--r) * 0.56005) / 0px calc(var(--r) * 0.84008), arc by calc(var(--r) * -0.43702) calc(var(--r) * 0.43702) of var(--r) cw, curve by calc(var(--r) * -1.05399) calc(var(--r) * 0.10899) with calc(var(--r) * -0.21391) calc(var(--r) * 0.10899) / calc(var(--r) * -0.49394) calc(var(--r) * 0.10899), hline to calc(var(--r) * 1.60000), curve by calc(var(--r) * -1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * -0.56005) 0px / calc(var(--r) * -0.84008) 0px, arc by calc(var(--r) * -0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * -0.10899) calc(var(--r) * -1.05399) with calc(var(--r) * -0.10899) calc(var(--r) * -0.21391) / calc(var(--r) * -0.10899) calc(var(--r) * -0.49394), vline to calc(var(--r) * 1.60000), curve by calc(var(--r) * 0.10899) calc(var(--r) * -1.05399) with 0px calc(var(--r) * -0.56005) / 0px calc(var(--r) * -0.84008), arc by calc(var(--r) * 0.43702) calc(var(--r) * -0.43702) of var(--r) cw, curve by calc(var(--r) * 1.05399) calc(var(--r) * -0.10899) with calc(var(--r) * 0.21391) calc(var(--r) * -0.10899) / calc(var(--r) * 0.49394) calc(var(--r) * -0.10899), close)}
 }
 </style>
 </head>
@@ -281,27 +287,119 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}ca
 
 const save=()=>{S.u=Date.now();lsave()};
 
-/* 애니메이션 (펼침/접힘, 이동, 세트 추가·삭제 모두 같은 시간·곡선) */
-const EZ2='cubic-bezier(.25,1,.5,1)';
-function enter(el){
-  if(!DUR)return;
-  const mb=parseFloat(getComputedStyle(el).marginBottom),h=el.offsetHeight,D=DUR+60;
-  const MK='linear-gradient(to bottom,#000 calc(100% - var(--mk)),transparent)';
-  el.style.overflow='hidden';el.style.transformOrigin='50% 0';el.style.webkitMaskImage=el.style.maskImage=MK;
-  el.animate([{height:'0px',marginBottom:'0px'},{height:h+'px',marginBottom:mb+'px'}],{duration:D,easing:EZ});
-  el.animate([{'--mk':'32px'},{'--mk':'0px'}],{duration:D,easing:'cubic-bezier(.5,0,.3,1)'});
-  const a=el.animate([{opacity:0,transform:'translateY(-6px) scale(.97)'},{opacity:0,transform:'translateY(-6px) scale(.97)',offset:.15,easing:'cubic-bezier(.3,0,.2,1)'},{opacity:1,transform:'none'}],{duration:D+40});
-  a.onfinish=a.oncancel=()=>{el.style.overflow='';el.style.transformOrigin='';el.style.webkitMaskImage=el.style.maskImage=''};
+/* ── 목록 움직임: 종목 펼침·접힘, 세트 추가·삭제, 종목 추가·삭제 ──
+   높이(레이아웃)를 매 프레임 바꾸면 메인 스레드에서 목록 전체를 다시 배치·그려서 60Hz 이하로 떨어지고 덜컹거린다.
+   그래서 바뀐 배치를 한 번에 적용한 뒤, 모든 요소를 '방금 보이던 자리 → 새 자리'로 transform만으로 옮긴다(합성기, 120Hz).
+   · 카드 배경: 위·아래 모서리 조각(스쿼클) + 가운데 막대(세로로 늘림)로 늘어나고 줄어든다.
+   · 펼쳐지는 세트 목록: 카드 배경 끝선에서 잘려 보인다(잘라내는 상자와 내용을 반대로 옮기는 방식).
+   · 시간·곡선: 하단 타이머와 같은 감쇠 스프링(부드럽게 출발 → 살짝 지나쳤다 자리 잡음). 지나침은 최대 8px.
+   · 움직이는 도중 다시 누르면 그 순간 보이던 자리에서 이어서 움직인다. */
+const FXK={w:15,z:.74,ramp:.1},FXR=120,FADE=28;
+const FX=new Map();
+const c01=x=>x<0?0:x>1?1:x;
+function yIn(el,root){let y=0,n=el;while(n&&n!==root){y+=n.offsetTop;n=n.offsetParent}return y}
+function fxTraj(){
+  const W2=FXK.w*FXK.w,D=2*FXK.z*FXK.w,h=1/(FXR*8),out=[0];let p=0,v=0,t=0;
+  for(let i=1;i<=FXR*2;i++){
+    for(let j=0;j<8;j++){const tg=eio(t/FXK.ramp);v+=(W2*(tg-p)-D*v)*h;p+=v*h;t+=h}
+    out.push(p);
+    if(t>=FXK.ramp&&Math.abs(p-1)<.0012&&Math.abs(v)<.02)break;
+  }
+  out[out.length-1]=1;return out;
 }
-function exit(el){
-  const mb=getComputedStyle(el).marginBottom,h=el.offsetHeight;
-  el.classList.add('rm');
-  if(!DUR){el.remove();return}
-  const D=DUR+20;
-  el.style.overflow='hidden';el.style.transformOrigin='50% 0';
-  el.animate([{height:h+'px',marginBottom:mb},{height:'0px',marginBottom:'0px'}],{duration:D,easing:EZ,fill:'forwards'});
-  const a=el.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(-8px) scale(.97)',offset:.7},{opacity:0,transform:'translateY(-8px) scale(.97)'}],{duration:D,easing:EZ2,fill:'forwards'});
-  a.onfinish=()=>el.remove();
+function fxP(f){const k=Math.min(f.tr.length-1,(performance.now()-f.t0)/1000*FXR),i=Math.floor(k),j=Math.min(i+1,f.tr.length-1);return f.tr[i]+(f.tr[j]-f.tr[i])*(k-i)}
+function fxBg(c){
+  if(c._bg&&c._bg.t.parentNode===c)return c._bg;
+  const mk=k=>{const i=document.createElement('i');i.className='cq '+k;c.insertBefore(i,c.firstChild);return i};
+  c._bg={b:mk('cqb cqc'),m:mk('cqm'),t:mk('cqt cqc')};return c._bg;
+}
+const fxOff=(f,el,p)=>{const v=f.off.get(el);return v?v[0]+(v[1]-v[0])*p:0};
+/* 진행 중인 움직임을 끝 상태로 확정 */
+function fxEnd(ps){
+  const f=ps&&FX.get(ps);if(!f)return;FX.delete(ps);
+  f.anims.forEach(a=>{a.onfinish=null;a.cancel()});
+  f.deco.forEach(e=>e.style.transformOrigin='');
+  if(f.card)f.card.classList.remove('fl');
+  if(f.mode==='initial'){const sn=ps.scrollTop;f.apply();if(f.s0!==f.s1)ps.scrollTop=Math.max(0,sn-(f.s0-f.s1))}
+  if(f.done)f.done();
+}
+const fxEndAll=()=>[...FX.keys()].forEach(fxEnd);
+/* o: {ps, gw, card?, mode:'final'(배치를 먼저 바꿈)|'initial'(끝날 때 바꿈), apply, revert?, done?, scroll?, fadeIn?, fadeOut?, sets?:'in'|'out'} */
+function flow(o){
+  const ps=o.ps,c=o.card||null;
+  if(!ps||!DUR){if(ps)fxEnd(ps);o.apply();if(o.done)o.done();if(o.scroll&&ps)ps.scrollTop=Math.max(0,o.scroll());return}
+  const items=()=>[...o.gw.querySelectorAll('.gl>.c'),o.gw.querySelector('.ad')].filter(Boolean);
+  const inner=()=>c?[...c.querySelectorAll('.sl>.r,.bt')]:[];
+  /* 1) 지금 화면에 보이는 자리(이전 움직임이 진행 중이면 그 순간 값) */
+  const prev=FX.get(ps),pp=prev?fxP(prev):1,sb=ps.scrollTop,scr0=new Map();
+  [...items(),...inner()].forEach(el=>scr0.set(el,yIn(el,ps)-sb+(prev?fxOff(prev,el,pp):0)));
+  const Hs=c?(prev&&prev.card===c?prev.H(pp):c.offsetHeight):0;
+  const si0=c?(prev&&prev.card===c&&prev.si?prev.si(pp):(c.classList.contains('o')?1:0)):0;
+  if(prev)fxEnd(ps);
+  items().forEach(el=>{if(el!==c&&el.getAnimations)el.getAnimations().forEach(a=>a.finish())});
+  /* 2) 새 배치 */
+  const s0=ps.scrollTop,f={mode:o.mode||'final',apply:o.apply,done:o.done,card:c,off:new Map(),deco:[],anims:[],s0,s1:s0};
+  const mx=()=>Math.max(0,ps.scrollHeight-ps.clientHeight);
+  let He,HL;
+  if(f.mode==='initial'){
+    if(c)c.classList.add('fl');
+    const els=[...items(),...inner()],lay=new Map();
+    els.forEach(el=>lay.set(el,yIn(el,ps)-s0));HL=c?c.offsetHeight:0;
+    if(c)c.classList.remove('fl');
+    o.apply();
+    const s1=Math.min(Math.max(0,o.scroll?o.scroll():s0),mx());f.s1=s1;
+    const fin=new Map();els.forEach(el=>fin.set(el,el.offsetParent?yIn(el,ps)-s1:null));He=c?c.offsetHeight:0;
+    o.revert();if(c)c.classList.add('fl');
+    if(Math.abs(ps.scrollTop-s0)>.5)ps.scrollTop=s0;
+    els.forEach(el=>{const l=lay.get(el),a=(scr0.has(el)?scr0.get(el):l)-l,z=fin.get(el);f.off.set(el,[a,z==null?a:z-l])});
+  }else{
+    o.apply();if(c)c.classList.add('fl');
+    if(o.scroll){const t=Math.min(Math.max(0,o.scroll()),mx());if(Math.abs(t-s0)>.5)ps.scrollTop=t}
+    const s1=ps.scrollTop;f.s1=s1;
+    [...items(),...inner()].forEach(el=>{const l=yIn(el,ps)-s1;f.off.set(el,[scr0.has(el)?scr0.get(el)-l:0,0])});
+    He=HL=c?c.offsetHeight:0;
+  }
+  /* 3) 스프링 궤적(지나침은 가장 크게 움직이는 것 기준 최대 8px) */
+  let tr=fxTraj(),big=c?Math.abs(He-Hs):0;
+  f.off.forEach(v=>{big=Math.max(big,Math.abs(v[1]-v[0]))});
+  const pm=Math.max(...tr);if(pm>1&&big*(pm-1)>8){const k=8/(big*(pm-1));tr=tr.map(p=>p>1?1+(p-1)*k:p)}
+  f.tr=tr;
+  const lo=Math.min(Hs,He)-6;
+  f.H=p=>Math.max(lo,Hs+(He-Hs)*p);
+  if(o.sets==='in')f.si=p=>si0+(1-si0)*c01(p/.5);
+  else if(o.sets==='out')f.si=p=>si0*(1-c01(p/.6));
+  /* 4) 키프레임 */
+  const K=new Map(),add=(el,tf,op)=>{let a=K.get(el);if(!a)K.set(el,a=[]);const k={transform:tf};if(op!=null)k.opacity=op;a.push(k)};
+  const fi=new Set(o.fadeIn?o.fadeIn():[]),fo=new Set(o.fadeOut||[]);
+  [...fi,...fo].forEach(el=>{el.style.transformOrigin='50% 0';f.deco.push(el)});
+  const deco=(el,p)=>{
+    if(fi.has(el)){const a=c01((p-.05)/.55);return[' translateY('+(-6*(1-a)).toFixed(2)+'px) scale('+(.97+.03*a).toFixed(4)+')',+a.toFixed(3)]}
+    if(fo.has(el)){const a=1-c01(p/.6);return[' translateY('+(-8*(1-a)).toFixed(2)+'px) scale('+(.97+.03*a).toFixed(4)+')',+a.toFixed(3)]}
+    return['',null]};
+  const moving=el=>{const v=f.off.get(el);return fi.has(el)||fo.has(el)||(v&&(Math.abs(v[0])>.3||Math.abs(v[1])>.3))};
+  const T=v=>'translateY('+v.toFixed(2)+'px)';
+  let bg=null,q=0,base=1;
+  if(c){
+    bg=fxBg(c);const W=c.offsetWidth,cs=getComputedStyle(c);
+    const r=(parseFloat(cs.getPropertyValue('--rb'))||14)+(parseFloat(cs.getPropertyValue('--cp'))||12);
+    q=Math.ceil(r*1.6)+1;base=Math.max(1,Math.max(Hs,He,HL)-2*q);
+    [bg.t,bg.b].forEach(x=>x.style.cssText='height:'+2*q+'px;--w:'+W+'px;--h:'+2*q+'px');bg.m.style.height=base+'px';
+  }
+  const LI=items().filter(el=>el!==c&&moving(el)),IN=inner().filter(moving);
+  const kids=c?[...c.children].filter(x=>x.matches('.h,.m')):[],ss=c&&c.querySelector('.ss'),si=c&&c.querySelector('.si');
+  tr.forEach(p=>{
+    LI.forEach(el=>{const d=deco(el,p);add(el,T(fxOff(f,el,p))+d[0],d[1])});
+    if(!c)return;
+    const co=fxOff(f,c,p),H=f.H(p),dd=Math.max(0,HL-H);
+    kids.forEach(k=>add(k,T(co)));
+    add(bg.t,T(co));add(bg.m,T(co+q)+' scaleY('+Math.max(0,(H-2*q)/base).toFixed(5)+')');add(bg.b,T(co+H-2*q));
+    add(ss,T(co-dd));add(si,T(dd),f.si?+f.si(p).toFixed(3):null);
+    IN.forEach(el=>{const d=deco(el,p);add(el,T(fxOff(f,el,p)-co)+d[0],d[1])});
+  });
+  const dur=(tr.length-1)/FXR*1000;f.t0=performance.now();
+  K.forEach((k,el)=>f.anims.push(el.animate(k,{duration:dur,easing:'linear',fill:'forwards'})));
+  FX.set(ps,f);
+  if(f.anims[0])f.anims[0].onfinish=()=>{if(FX.get(ps)===f)fxEnd(ps)};else fxEnd(ps);
 }
 function navState(root){
   (root.matches&&root.matches('.gl')?[root]:[...root.querySelectorAll('.gl')]).forEach(gl=>{
@@ -314,6 +412,7 @@ function navState(root){
   });
 }
 function swap(c,dir,f){
+  fxEnd(c.closest('.ps'));
   const gl=c.parentNode;
   let s=dir<0?c.previousElementSibling:c.nextElementSibling;
   while(s&&s.classList.contains('rm'))s=dir<0?s.previousElementSibling:s.nextElementSibling;
@@ -358,6 +457,7 @@ function upd(c,e){c.querySelector('.cn').innerHTML='<span>총 '+fmt(vol(e))+'kg<
 const pg=$('#pg');let panels=[],cur=S.t||0;
 let building=0;
 function build(){
+  fxEndAll();
   const st=panels.map(p=>{const q=p.querySelector('.ps');return q?q.scrollTop:0});
   pg.innerHTML=S.tabs.map(()=>'<section class="pn"></section>').join('');
   panels=[...pg.children];
@@ -375,7 +475,7 @@ function build(){
 /* 팔 탭의 이두/삼두: 마지막으로 기록한 부위가 가슴이면 삼두, 등이거나 그 외면 이두를 먼저.
    팔 화면이 완전히 안 보일 때만 바꿔서(스와이프 도중 바뀌는 모습 없음) 들어올 때 이미 맞춰져 있게 한다. */
 function sgSet(ti,gi){
-  const p=panels[ti];if(!p)return;
+  const p=panels[ti];if(!p)return;fxEnd(p.querySelector('.ps'));
   S.sg=S.sg||{};S.sg[ti]=gi;
   const sg=p.querySelector('.sg');
   if(sg){sg.style.setProperty('--i',gi);[...sg.children].forEach((x,k)=>x.classList.toggle('on',k===gi))}
@@ -400,29 +500,6 @@ function armRule(force){
   if(!force&&Math.abs(pg.scrollLeft-i*pg.clientWidth)<pg.clientWidth-1)return;
   const want=S.lr&&S.lr.d===today()&&S.lr.n==='가슴'?1:0;
   if(((S.sg&&S.sg[i])||0)!==want){sgSet(i,want);lsave()}
-}
-/* 종목을 펼칠 때: 펼쳐진 내용이 아래(타이머·키보드 뒤)로 가려지면 그만큼만 목록을 올린다.
-   단, 종목 맨 위가 상단 페이드가 끝나는 선(목록 위 28px)보다 더 올라가지는 않게. 다 보이면 움직이지 않는다
-   (그래서 맨 위 종목이나 화면 위쪽 종목은 그냥 펼쳐진다). 펼침과 같은 시간·곡선으로 함께 움직이고, 손가락이 닿으면 멈춘다. */
-const bez=(x1,y1,x2,y2)=>t=>{let a=0,b=1,u=t;for(let i=0;i<22;i++){u=(a+b)/2;const x=3*(1-u)*(1-u)*u*x1+3*(1-u)*u*u*x2+u*u*u;if(x<t)a=u;else b=u}return 3*(1-u)*(1-u)*u*y1+3*(1-u)*u*u*y2+u*u*u};
-const EZF=bez(.32,.72,0,1),FADE=28;
-function reveal(c){
-  const p=c.closest('.ps'),si=c.querySelector('.si');if(!p||!si)return;
-  const add=Math.max(0,si.scrollHeight-si.clientHeight);
-  const cr=c.getBoundingClientRect(),pr=p.getBoundingClientRect();
-  const bot=(kbNow>50?kbTop():Math.min(pr.bottom,TW.getBoundingClientRect().top))-12;
-  const need=cr.bottom+add-bot;if(need<=1)return;
-  const d=Math.min(need,cr.top-(pr.top+FADE));if(d<=1)return;
-  const s0=p.scrollTop,tok=p._rv=(p._rv||0)+1,t0=performance.now();
-  if(!p._rvL){p._rvL=1;p.addEventListener('touchstart',()=>{p._rv++},{passive:true})}
-  if(!DUR){p.scrollTop=s0+d;return}
-  const step=now=>{
-    if(p._rv!==tok)return;
-    const k=Math.min(1,(now-t0)/DUR);p.scrollTop=s0+d*EZF(k);
-    if(k<1)requestAnimationFrame(step);
-    else setTimeout(()=>{if(p._rv===tok)p.scrollTop=s0+d},60);
-  };
-  requestAnimationFrame(step);
 }
 function mark(noInd){[...$('#tb').querySelectorAll('button')].forEach((b,i)=>{if(b.classList.contains('on')!==(i===(tabGo>=0?tabGo:cur)))b.classList.toggle('on',i===(tabGo>=0?tabGo:cur))});if(tabGo<0&&!noInd)ind()}
 /* 선택 표시: 페이지가 넘어가는 만큼 같이 미끄러진다(스와이프·탭 모두) */
@@ -554,6 +631,7 @@ pg.addEventListener('click',async ev=>{
   const a=b.dataset.a,gw=b.closest('.gw');
   if(a==='sg'){
     const p=b.closest('.pn'),ti=+p.dataset.i,gi=+b.dataset.gi,sg=b.parentNode;
+    fxEnd(p.querySelector('.ps'));
     S.sg=S.sg||{};const old=S.sg[ti]||0;if(old===gi)return;
     S.sg[ti]=gi;lsave();
     sg.style.setProperty('--i',gi);
@@ -587,15 +665,17 @@ pg.addEventListener('click',async ev=>{
     const inp=gw.querySelector('.ad w-in'),n=inp.value.trim();if(!n)return;
     const e=mk(n);e.o=1;
     S.tabs[+b.closest('.pn').dataset.i].g[+gw.dataset.g].e.push(e);
-    const gl=gw.querySelector('.gl');
-    gl.insertAdjacentHTML('beforeend',cardHTML(e));
-    const c=gl.lastElementChild;upd(c,e);enter(c);navState(gl);inp.value='';gw.querySelector('.ad').classList.remove('has');save();
-    setTimeout(()=>{const p=c.closest('.ps');if(!p)return;const pr=p.getBoundingClientRect(),cr=c.getBoundingClientRect();if(cr.bottom>pr.bottom-pbv()+12)smoothTo(p,p.scrollTop+cr.bottom-pr.bottom+pbv()-12)},DUR);
+    const gl=gw.querySelector('.gl'),ps=gw.closest('.ps');let c;
+    inp.value='';gw.querySelector('.ad').classList.remove('has');
+    /* 새 종목이 타이머 뒤로 가려지면 보이는 만큼 목록을 함께 올린다 */
+    flow({ps,gw,fadeIn:()=>[c],apply:()=>{gl.insertAdjacentHTML('beforeend',cardHTML(e));c=gl.lastElementChild;upd(c,e)},
+      scroll:()=>{const b=yIn(c,ps)+c.offsetHeight,v=ps.clientHeight-pbv()+12;return b-ps.scrollTop>v?b-v:ps.scrollTop}});
+    navState(gl);save();
     return;
   }
   const c=b.closest('.c'),f=fnd(c.dataset.e),e=f.e;
   if(a==='tg'){
-    const open=!c.classList.contains('o');
+    const open=!e.o;
     if(DUR){
       /* 짧게 탭해도 눌렸다가 탄력 있게 돌아오는 느낌이 보이도록 */
       clearTimeout(c._pt);
@@ -605,18 +685,20 @@ pg.addEventListener('click',async ev=>{
       an.onfinish=an.oncancel=()=>{c.style.transition=''};
     }
     
-    c.classList.toggle('o',open);e.o=open?1:0;save();
-    if(open)reveal(c);
+    e.o=open?1:0;save();
+    const ps=c.closest('.ps'),gw=c.closest('.gw');
+    /* 펼치면 종목 맨 위를 상단 페이드가 끝나는 선까지 올린다(맨 위 종목은 이미 위에 있어 그대로) */
+    if(open)flow({ps,gw,card:c,sets:'in',apply:()=>c.classList.add('o'),scroll:()=>yIn(c,ps)-FADE});
+    else flow({ps,gw,card:c,sets:'out',mode:'initial',apply:()=>c.classList.remove('o'),revert:()=>c.classList.add('o')});
   }else if(a==='up'||a==='dn'){
     if(b.classList.contains('dis'))return;
     swap(c,a==='up'?-1:1,f);
   }else if(a==='as'){
     const k=e.sets.length,l=e.sets[k-1]||{};
     e.sets.push({w:l.w||'',r:l.r||''});
-    const sl=c.querySelector('.sl');
-    sl.insertAdjacentHTML('beforeend',rowHTML(e.sets[k]));
-    const nr=sl.lastElementChild;
-    commit(e);enter(nr);upd(c,e);save();
+    const sl=c.querySelector('.sl');let nr;
+    flow({ps:c.closest('.ps'),gw:c.closest('.gw'),card:c,fadeIn:()=>[nr],apply:()=>{sl.insertAdjacentHTML('beforeend',rowHTML(e.sets[k]));nr=sl.lastElementChild}});
+    commit(e);upd(c,e);save();
     const act=document.activeElement;
     /* 키보드가 떠 있든 아니든 세트를 추가하면 휴식 타이머를 0부터 다시 */
     restGo();
@@ -638,7 +720,9 @@ pg.addEventListener('click',async ev=>{
     }
     if(e.ls===dk)e.ls=-1;else if(e.ls>dk)e.ls--;
     e.sets.splice(dk,1);
-    commit(e);exit(row);upd(c,e);save();
+    row.classList.add('rm');
+    flow({ps:c.closest('.ps'),gw:c.closest('.gw'),card:c,mode:'initial',fadeOut:[row],apply:()=>{row.style.display='none'},revert:()=>{row.style.display=''},done:()=>row.remove()});
+    commit(e);upd(c,e);save();
   }
 });
 pg.addEventListener('input',ev=>{
@@ -814,7 +898,9 @@ async function editEx(c){
   if(v==='del'){
     if(await dlg('“'+e.n+'” 종목을 삭제할까요?',{ok:'삭제',danger:1})){
       const g=fnd(e.id);if(!g)return;
-      const gl=c.parentNode;g.g.splice(g.i,1);exit(c);navState(gl);act(pn);save();
+      const gl=c.parentNode;g.g.splice(g.i,1);c.classList.add('rm');
+      flow({ps:c.closest('.ps'),gw:c.closest('.gw'),mode:'initial',fadeOut:[c],apply:()=>{c.style.display='none'},revert:()=>{c.style.display=''},done:()=>c.remove()});
+      navState(gl);act(pn);save();
     }
   }else if(typeof v==='string'){
     const n=v.replace(/\s+/g,' ').trim();
@@ -999,7 +1085,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107ze';
+const BUILD='20261107zf';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1059,6 +1145,7 @@ function wshow(){
 /* 운동 종료: 모든 종목을 접고, 세트 강조를 지우고, 새 운동으로 넘긴 뒤 백업(끝날 때까지 진행 표시) */
 $('#wk').querySelector('.spn').innerHTML='<svg viewBox="0 0 24 24" width="14" height="14">'+[0,1,2,3,4,5,6,7].map(i=>'<line x1="12" y1="2.8" x2="12" y2="7.4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="'+(1-i*.11).toFixed(2)+'" transform="rotate('+(-i*45)+' 12 12)"/>').join('')+'</svg>';
 function endWork(){
+  fxEndAll();
   S.ss=(S.ss||1)+1;
   S.p.forEach(ts=>ts.forEach(t=>t.g.forEach(g=>g.e.forEach(e=>{e.o=0;e.ls=-1}))));
   document.querySelectorAll('#pg .c.o').forEach(c=>c.classList.remove('o'));
