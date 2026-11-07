@@ -156,6 +156,9 @@ html.kbo #fb{opacity:0}
 .spn{display:inline-flex;width:0;opacity:0;overflow:hidden;color:var(--mu);transition:opacity .2s,width .25s var(--e)}
 .spn svg{flex:none;margin-left:6px;animation:spn .9s steps(8) infinite}
 html.bkp .spn{width:20px;opacity:1}
+html.bkp #wk{pointer-events:none}
+#tm{transition:color .2s}#tm.z{color:var(--mu)}
+#wk.on{color:var(--tx)}
 @keyframes spn{to{transform:rotate(360deg)}}
 #tm{transform-origin:0 0;grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
 #wk{display:inline-flex;align-items:center;grid-column:1;grid-row:2;justify-self:start;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
@@ -369,6 +372,26 @@ function build(){
   building=1;pg.scrollLeft=cur*pg.clientWidth;mark();
   requestAnimationFrame(()=>{pg.scrollLeft=cur*pg.clientWidth;building=0;mark()});
 }
+/* 팔 탭의 이두/삼두: 마지막으로 기록한 부위가 가슴이면 삼두, 등이거나 그 외면 이두를 먼저.
+   팔 화면이 완전히 안 보일 때만 바꿔서(스와이프 도중 바뀌는 모습 없음) 들어올 때 이미 맞춰져 있게 한다. */
+function sgSet(ti,gi){
+  const p=panels[ti];if(!p)return;
+  S.sg=S.sg||{};S.sg[ti]=gi;
+  const sg=p.querySelector('.sg');
+  if(sg){sg.style.setProperty('--i',gi);[...sg.children].forEach((x,k)=>x.classList.toggle('on',k===gi))}
+  p.querySelectorAll('.gw').forEach(w=>{
+    if(w.getAnimations)w.getAnimations().forEach(x=>x.cancel());
+    w.style.position=w.style.top=w.style.left=w.style.width=w.style.pointerEvents=w.style.zIndex='';delete w.dataset.out;
+    w.classList.toggle('hid',+w.dataset.g!==gi);
+  });
+  const ps=p.querySelector('.ps');if(ps){ps.scrollTop=0;ps.classList.remove('sc')}
+}
+function armRule(force){
+  const i=S.tabs.findIndex(t=>t.n==='팔');if(i<0||!panels[i]||S.tabs[i].g.length<2)return;
+  if(!force&&Math.abs(pg.scrollLeft-i*pg.clientWidth)<pg.clientWidth-1)return;
+  const want=S.lr==='가슴'?1:0;
+  if(((S.sg&&S.sg[i])||0)!==want){sgSet(i,want);lsave()}
+}
 function mark(noInd){[...$('#tb').querySelectorAll('button')].forEach((b,i)=>{if(b.classList.contains('on')!==(i===(tabGo>=0?tabGo:cur)))b.classList.toggle('on',i===(tabGo>=0?tabGo:cur))});if(tabGo<0&&!noInd)ind()}
 /* 선택 표시: 페이지가 넘어가는 만큼 같이 미끄러진다(스와이프·탭 모두) */
 /* 선택 표시 위치: 버튼은 같은 너비·간격이라 첫 버튼과 마지막 버튼 위치만 알면 된다 */
@@ -445,6 +468,7 @@ pg.addEventListener('scroll',()=>{
   }
   const i=Math.round(pg.scrollLeft/pg.clientWidth);
   if(i!==cur&&i>=0&&i<S.tabs.length){cur=i;S.t=i;clearTimeout(svT);svT=setTimeout(lsave,450)}
+  armRule();
   mark(1);
 },{passive:true});
 function resync(){G=null;if(building||performance.now()-navT<900)return;const x=cur*pg.clientWidth;if(Math.abs(pg.scrollLeft-x)>2)pg.scrollLeft=x;mark()}
@@ -560,7 +584,8 @@ pg.addEventListener('click',async ev=>{
     const nr=sl.lastElementChild;
     commit(e);enter(nr);upd(c,e);save();
     const act=document.activeElement;
-    if(!(act&&act.matches&&act.matches('.f w-in')))restGo();
+    /* 키보드가 떠 있든 아니든 세트를 추가하면 휴식 타이머를 0부터 다시 */
+    restGo();
     if(act&&act.matches&&act.matches('w-in')&&sl.contains(act)){
       const t=nr.querySelector('w-in[data-f="'+act.dataset.f+'"]');
       if(DUR)glide(t,DUR+80);else{t.focus({preventScroll:true});caretEnd(t)}
@@ -739,6 +764,7 @@ document.addEventListener('focusin',e=>{
 pg.addEventListener('change',ev=>{
   const f=ev.target.dataset&&ev.target.dataset.f;if(f!=='w'&&f!=='r')return;
   const c=ev.target.closest('.c'),e=fnd(c.dataset.e).e;
+  const pn=c.closest('.pn');if(pn){S.lr=S.tabs[+pn.dataset.i].n;armRule()}
   commit(e);upd(c,e);save();
 });
 pg.addEventListener('keydown',ev=>{
@@ -848,7 +874,7 @@ async function fileBackup(){
       setTimeout(()=>URL.revokeObjectURL(u),4000);
     }
     try{localStorage.setItem('wbk',Date.now())}catch(e){}
-  }catch(e){if(e&&e.name!=='AbortError')dlg('백업 파일을 만들지 못했어요.',{nc:1})}
+  }catch(e){if(e&&e.name!=='AbortError')await dlg('백업 파일을 만들지 못했어요.',{nc:1})}
 }
 /* GitHub 비공개 저장소의 파일 하나를 계속 덮어쓰는 백업 */
 const GHF='workout-backup.json';
@@ -872,8 +898,8 @@ async function ghBackup(g){
 async function doBackup(){
   const g=ghCfg();
   if(!g)return fileBackup();
-  try{await ghBackup(g);try{localStorage.setItem('wbk',Date.now())}catch(e){}dlg('GitHub에 백업했어요.',{nc:1})}
-  catch(e){dlg('GitHub에 백업하지 못했어요. 인터넷 연결과 연결 정보를 확인해 주세요. ('+(e&&e.message||'')+')',{nc:1})}
+  try{await ghBackup(g);try{localStorage.setItem('wbk',Date.now())}catch(e){}await dlg('GitHub에 백업했어요.',{nc:1})}
+  catch(e){await dlg('GitHub에 백업하지 못했어요. 인터넷 연결과 연결 정보를 확인해 주세요. ('+(e&&e.message||'')+')',{nc:1})}
 }
 async function ghConnect(){
   const g=ghCfg();
@@ -920,7 +946,7 @@ $('#ti').onclick=()=>{
 };
 
 
-build();mark();markPl();
+build();armRule(1);mark();markPl();
 requestAnimationFrame(()=>pg.scrollTo({left:cur*pg.clientWidth}));
 /* 화면 자동 꺼짐 방지: 앱이 보이는 동안 화면을 켜 둔다(Screen Wake Lock, 홈 화면 앱은 iOS 18.4 이상).
    iOS는 '손가락을 뗀 순간(touchend·click)'처럼 사용자 동작 안에서만 요청을 허락한다(누르는 순간 touchstart는 안 됨).
@@ -939,7 +965,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107zb';
+const BUILD='20261107zc';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -965,6 +991,8 @@ function tshow(){
   const s=Math.floor(tnow()/1000);
   $('#tm').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
   const run=!!T.st,ts=$('#ts');
+  /* 00:00으로 멈춰 있으면 '운동 시작'과 같은 회색, 돌기 시작하면 검정 */
+  {const z=!run&&s===0;if($('#tm').classList.contains('z')!==z)$('#tm').classList.toggle('z',z)}
   if(shown!==(run?1:0)){shown=run?1:0;ts.innerHTML=run?PAUSE:PLAY;ts.setAttribute('aria-label',run?'정지':'시작');ts.classList.toggle('run',run)}
   const tr=$('#tr'),can=run||T.acc>0;if(tr.disabled===can)tr.disabled=!can;
   wshow();
@@ -989,10 +1017,10 @@ if(WS&&Date.now()-WS>12*36e5)WS=0;
 /* 앱을 완전히 종료했다가 새로 실행하면 운동 시간도 멈추고 '운동 시작'으로 되돌린다 */
 if(FRESH&&WS){WS=0;try{localStorage.setItem('wws','')}catch(e){}}
 function wshow(){
-  const b=$('#wkt');let t='운동 시작';
-  if(WS){const sc=Math.max(0,Math.floor((Date.now()-WS)/1e3)),z=n=>String(n).padStart(2,'0');t=z(Math.floor(sc/3600))+':'+z(Math.floor(sc/60)%60)+':'+z(sc%60)}
+  const b=$('#wkt'),bk=document.documentElement.classList.contains('bkp');let t=bk?'백업 중':'운동 시작';
+  if(WS&&!bk){const sc=Math.max(0,Math.floor((Date.now()-WS)/1e3)),z=n=>String(n).padStart(2,'0');t=z(Math.floor(sc/3600))+':'+z(Math.floor(sc/60)%60)+':'+z(sc%60)}
   if(b.textContent!==t)b.textContent=t;
-  $('#wk').classList.toggle('on',!!WS);
+  $('#wk').classList.toggle('on',!!WS&&!bk);
 }
 /* 운동 종료: 모든 종목을 접고, 세트 강조를 지우고, 새 운동으로 넘긴 뒤 백업(끝날 때까지 진행 표시) */
 $('#wk').querySelector('.spn').innerHTML='<svg viewBox="0 0 24 24" width="14" height="14">'+[0,1,2,3,4,5,6,7].map(i=>'<line x1="12" y1="2.8" x2="12" y2="7.4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="'+(1-i*.11).toFixed(2)+'" transform="rotate('+(-i*45)+' 12 12)"/>').join('')+'</svg>';
@@ -1005,10 +1033,11 @@ function endWork(){
 }
 $('#wk').onclick=async()=>{
   const rt=document.documentElement;if(rt.classList.contains('bkp'))return;
-  const end=!!WS;WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}wshow();
-  if(!end)return;
-  endWork();rt.classList.add('bkp');
-  try{await doBackup()}finally{rt.classList.remove('bkp')}
+  const end=!!WS;WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}
+  if(!end){wshow();return}
+  /* 운동 종료: '백업 중'과 진행 표시(누를 수 없음) → 백업 완료 안내의 확인을 누르면 '운동 시작'으로 */
+  rt.classList.add('bkp');wshow();endWork();
+  try{await doBackup()}finally{rt.classList.remove('bkp');wshow()}
 };
 setInterval(tshow,250);tshow();
 /* ── 휴식 타이머 음성 안내 ──
