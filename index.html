@@ -77,6 +77,7 @@ body{timeline-scope:--pg}
 .sl{counter-reset:s}
 .r{counter-increment:s;display:grid;grid-template-columns:26px 1fr 24px 1fr 24px 52px;align-items:start;gap:4px;margin-bottom:8px}
 .r.rm{counter-increment:none;pointer-events:none}
+.r.rm .n::before{content:attr(data-k)}
 .n::before{content:counter(s)}
 .r .n{color:var(--mu);font-weight:700;text-align:center;line-height:54px;transition:color .25s cubic-bezier(.25,1,.5,1)}
 .r.cur .n{color:var(--ac)}
@@ -330,6 +331,11 @@ function fxBg(c){
 }
 const fxOff=(f,el,p)=>{const v=f.off.get(el);return v?v[0]+(v[1]-v[0])*p:0};
 /* 진행 중인 움직임을 끝 상태로 확정 */
+/* el의 아래 끝이 '타이머(또는 키보드) 위 12px' 안에 들어오도록 하는 스크롤 위치(이미 보이면 그대로) */
+function keepIn(ps,el){
+  const pr=ps.getBoundingClientRect(),vb=(kbNow>50?kbTop():Math.min(pr.bottom,TW.getBoundingClientRect().top))-12-pr.top;
+  const b=yIn(el,ps)+el.offsetHeight;return b-ps.scrollTop>vb?b-vb:ps.scrollTop;
+}
 function fxEnd(ps){
   const f=ps&&FX.get(ps);if(!f)return;FX.delete(ps);
   f.anims.forEach(a=>{a.onfinish=null;a.cancel()});
@@ -715,7 +721,9 @@ pg.addEventListener('click',async ev=>{
     const k=e.sets.length,l=e.sets[k-1]||{};
     e.sets.push({w:l.w||'',r:l.r||''});
     const sl=c.querySelector('.sl');let nr;
-    flow({ps:c.closest('.ps'),gw:c.closest('.gw'),card:c,fadeIn:()=>[nr],apply:()=>{sl.insertAdjacentHTML('beforeend',rowHTML(e.sets[k]));nr=sl.lastElementChild}});
+    const ps=c.closest('.ps');
+    flow({ps,gw:c.closest('.gw'),card:c,fadeIn:()=>[nr],apply:()=>{sl.insertAdjacentHTML('beforeend',rowHTML(e.sets[k]));nr=sl.lastElementChild;if(kbNow>50)setPad(ps)},
+      scroll:()=>keepIn(ps,c.querySelector('.bt')||nr)});
     commit(e);upd(c,e);save();
     const act=document.activeElement;
     /* 키보드가 떠 있든 아니든 세트를 추가하면 휴식 타이머를 0부터 다시 */
@@ -738,7 +746,7 @@ pg.addEventListener('click',async ev=>{
     }
     if(e.ls===dk)e.ls=-1;else if(e.ls>dk)e.ls--;
     e.sets.splice(dk,1);
-    row.classList.add('rm');
+    row.querySelector('.n').dataset.k=dk+1;row.classList.add('rm');
     flow({ps:c.closest('.ps'),gw:c.closest('.gw'),card:c,mode:'initial',fadeOut:[row],apply:()=>{row.style.display='none'},revert:()=>{row.style.display=''},done:()=>row.remove()});
     commit(e);upd(c,e);save();
   }
@@ -1159,7 +1167,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107zi';
+const BUILD='20261107zj';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
