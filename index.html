@@ -131,9 +131,10 @@ body{timeline-scope:--pg}
 .gw.hid{display:none}
 .fd{position:sticky;top:0;height:0;z-index:3}
 .fd~.gw{padding-top:4px}
-.fd::after{content:"";position:absolute;left:0;right:0;top:100%;height:28px;pointer-events:none;background:linear-gradient(to bottom,var(--bg),transparent);opacity:0;transition:opacity var(--d) var(--e)}
-.fd::after{top:0}
-.ps.sc .fd::after{opacity:1}
+/* 상단 페이드: 목록 자체를 알파 마스크로 투명하게(위 끝 0% → 28px에서 100%).
+   --fa는 위 끝의 불투명도: 맨 위(스크롤 0)면 1(페이드 없음), 스크롤한 만큼 0까지 연속으로 줄어든다. */
+@property --fa{syntax:'<number>';inherits:false;initial-value:1}
+.ps{--fa:1;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,var(--fa)) 0,#000 28px);mask-image:linear-gradient(to bottom,rgba(0,0,0,var(--fa)) 0,#000 28px)}
 .sg.pl,.sgw .sg{--r:13px}
 .sg.pl::before,.sgw .sg::before{--r:9px}
 .c.pr{transform:scale(.962);transition:transform .22s cubic-bezier(.3,0,.2,1)}
@@ -307,6 +308,9 @@ const save=()=>{S.u=Date.now();lsave()};
    · 움직이는 도중 다시 누르면 그 순간 보이던 자리에서 이어서 움직인다. */
 const FXK={w:15,z:.74,ramp:.1},FXR=120,FADE=28;
 const FX=new Map();
+/* 스크롤 위치 → 상단 페이드 세기(0~28px 동안 부드럽게). 움직임(펼침 등) 중에는 화면에 보이는 위치를 따라 함께 움직인다 */
+const faOf=s=>{const t=Math.min(1,Math.max(0,s/FADE));return +(1-t*t*(3-2*t)).toFixed(3)};
+function faSet(ps){const v=faOf(ps.scrollTop);if(ps._fa!==v){ps._fa=v;ps.style.setProperty('--fa',v)}}
 const c01=x=>x<0?0:x>1?1:x;
 function yIn(el,root){let y=0,n=el;while(n&&n!==root){y+=n.offsetTop;n=n.offsetParent}return y}
 function fxTraj(){
@@ -333,6 +337,7 @@ function fxEnd(ps){
   if(f.card)f.card.classList.remove('fl');
   if(f.mode==='initial'){const sn=ps.scrollTop;f.apply();if(f.s0!==f.s1)ps.scrollTop=Math.max(0,sn-(f.s0-f.s1))}
   if(f.done)f.done();
+  ps._fa=null;faSet(ps);
 }
 const fxEndAll=()=>[...FX.keys()].forEach(fxEnd);
 /* o: {ps, gw, card?, mode:'final'(배치를 먼저 바꿈)|'initial'(끝날 때 바꿈), apply, revert?, done?, scroll?, fadeIn?, fadeOut?, sets?:'in'|'out'} */
@@ -342,7 +347,7 @@ function flow(o){
   const items=()=>[...o.gw.querySelectorAll('.gl>.c'),o.gw.querySelector('.ad')].filter(Boolean);
   const inner=()=>c?[...c.querySelectorAll('.sl>.r,.bt')]:[];
   /* 1) 지금 화면에 보이는 자리(이전 움직임이 진행 중이면 그 순간 값) */
-  const prev=FX.get(ps),pp=prev?fxP(prev):1,sb=ps.scrollTop,scr0=new Map();
+  const prev=FX.get(ps),pp=prev?fxP(prev):1,sb=ps.scrollTop,scr0=new Map(),vs0=prev&&prev.vs?prev.vs(pp):sb;
   [...items(),...inner()].forEach(el=>scr0.set(el,yIn(el,ps)-sb+(prev?fxOff(prev,el,pp):0)));
   const Hs=c?(prev&&prev.card===c?prev.H(pp):c.offsetHeight):0;
   const si0=c?(prev&&prev.card===c&&prev.si?prev.si(pp):(c.classList.contains('o')?1:0)):0;
@@ -408,6 +413,8 @@ function flow(o){
     IN.forEach(el=>{const d=deco(el,p);add(el,T(fxOff(f,el,p)-co)+d[0],d[1])});
   });
   const dur=(tr.length-1)/FXR*1000;f.t0=performance.now();
+  f.vs=p=>vs0+(f.s1-vs0)*p;
+  if(Math.abs(faOf(vs0)-faOf(f.s1))>.001)K.set(ps,tr.map(p=>({'--fa':faOf(f.vs(p))})));
   K.forEach((k,el)=>f.anims.push(el.animate(k,{duration:dur,easing:'linear',fill:'forwards'})));
   FX.set(ps,f);
   if(f.anims[0])f.anims[0].onfinish=()=>{if(FX.get(ps)===f)fxEnd(ps)};else fxEnd(ps);
@@ -478,7 +485,7 @@ function build(){
     const gs=S.tabs[i].g,ai=Math.min((S.sg&&S.sg[i])||0,gs.length-1);
     p.innerHTML=(gs.length>1?`<div class="sgw"><div class="sg" style="--n:${gs.length};--i:${ai}">${gs.map((g,gi)=>`<button data-a="sg" data-gi="${gi}" class="${gi===ai?'on':''}">${esc(g.n)}</button>`).join('')}</div></div>`:'')+'<div class="ps"><div class="fd"></div>'+gs.map((g,gi)=>`<div class="gw${gi===ai?'':' hid'}" data-g="${gi}"><div class="gl">${g.e.map(cardHTML).join('')}</div><div class="ad"><w-in autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="${g.n?g.n+' ':''}종목 추가"></w-in><button data-a="ax" aria-label="종목 추가">${PLUS}</button></div></div>`).join('')+'</div>';
     p.querySelectorAll('.c').forEach(c=>upd(c,fnd(c.dataset.e).e));navState(p);
-    {const q=p.querySelector('.ps');q.scrollTop=st[i]||0;q.classList.toggle('sc',q.scrollTop>4)}
+    {const q=p.querySelector('.ps');q.scrollTop=st[i]||0;faSet(q)}
   });
   building=1;pg.scrollLeft=cur*pg.clientWidth;mark();
   requestAnimationFrame(()=>{pg.scrollLeft=cur*pg.clientWidth;building=0;mark()});
@@ -495,7 +502,7 @@ function sgSet(ti,gi){
     w.style.position=w.style.top=w.style.left=w.style.width=w.style.pointerEvents=w.style.zIndex='';delete w.dataset.out;
     w.classList.toggle('hid',+w.dataset.g!==gi);
   });
-  const ps=p.querySelector('.ps');if(ps){ps.scrollTop=0;ps.classList.remove('sc')}
+  const ps=p.querySelector('.ps');if(ps){ps.scrollTop=0;faSet(ps)}
 }
 /* 오늘 가슴·등 탭에서 무엇이든 하면(종목 추가·삭제·이름 변경, 세트 추가·삭제, 무게·횟수·높이·각도 입력, 펼치기·접기)
    그 부위를 한 날로 본다. 둘 다 했으면 마지막에 한 쪽. 날짜가 바뀌면 다시 이두가 기본. */
@@ -665,7 +672,7 @@ pg.addEventListener('click',async ev=>{
         an.onfinish=()=>{if(w.dataset.out){w.classList.add('hid');clr(w)}};
       });
       nw.classList.remove('hid');
-      ps.scrollTop=0;ps.classList.remove('sc');
+      ps.scrollTop=0;faSet(ps);
       nw.style.position='relative';nw.style.zIndex=1;
       const na=nw.animate([{opacity:0},{opacity:1}],{duration:300,easing:'cubic-bezier(.33,0,.2,1)'});
       na.onfinish=na.oncancel=()=>{nw.style.position='';nw.style.zIndex=''};
@@ -1152,7 +1159,7 @@ wake();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
 addEventListener('pageshow',wake);
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,wake,{capture:true,passive:true}));
-const BUILD='20261107zh';
+const BUILD='20261107zi';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1528,7 +1535,7 @@ function pin(){
 if(vv){vv.addEventListener('resize',pin);vv.addEventListener('scroll',pin)}
 addEventListener('scroll',()=>{if(scrollY||scrollX)scrollTo(0,0)});
 /* 탭 아래로 스크롤되는 목록은 페이드 아웃 */
-pg.addEventListener('scroll',ev=>{const p=ev.target;if(p.classList&&p.classList.contains('ps'))p.classList.toggle('sc',p.scrollTop>4)},true);
+pg.addEventListener('scroll',ev=>{const p=ev.target;if(p.classList&&p.classList.contains('ps'))faSet(p)},true);
 const SQ='.f w-in,.ad w-in,#dt,nav button,#tbi,.c,.ib2.sm,.m label,.ib2,.ad button,.sh,.db button,.sg,.mn button';
 const sqro=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>{
   const t=e.target,b=Array.isArray(e.borderBoxSize)?e.borderBoxSize[0]:e.borderBoxSize;
