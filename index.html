@@ -192,7 +192,7 @@ html.bkp #wk{pointer-events:none}
 #tm{transition:color .2s}#tm.z{color:var(--mu)}
 #wk.on{color:var(--tx)}
 /* 운동 시간 숫자는 한글보다 키가 작아(14px에서 약 10px vs 13px) 16px로 키워 눈높이를 맞춘다. 줄 높이는 그대로 14px, 숫자 중심이 1.33px 내려가 그만큼 올림 */
-#wk.on #wkt{font-size:16px;line-height:14px;transform:translateY(-1.33px)}
+#wk.on #wkt{font-size:16px;font-weight:700;line-height:14px;transform:translateY(-1.33px)}
 @keyframes spn{to{transform:rotate(360deg)}}
 #tm{transform-origin:0 0;grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
 /* '운동 시작'(또는 운동 시간) 오른쪽에 운동 시간 줄 */
@@ -1245,7 +1245,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261110h';
+const BUILD='20261110i';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1426,7 +1426,8 @@ function voTick(){
 setInterval(voTick,100);
 /* 음성 켜짐 ↔ 꺼짐(앱을 쓰는 동안만 기억, 완전히 종료하면 다시 켜짐) */
 const VT=$('#vt');
-const SPK_ON=ic('M11.75 5 7.25 9h-3v6h3l4.5 4zM16.25 9a4.2 4.2 0 0 1 0 6M19.25 6.5a8 8 0 0 1 0 11',22),SPK_OFF=ic('M11.75 5 7.25 9h-3v6h3l4.5 4zM4.5 4.5l15 15',22);
+/* 스피커: 선 두께는 다른 아이콘과 같고 그림만 12% 크게. 꺼짐은 소리 파장 자리에 X */
+const SPK_ON=ic('M10.77 4.16 5.73 8.64H2.37v6.72h3.36l5.04 4.48zM15.81 8.64a4.7 4.7 0 0 1 0 6.72M19.17 5.84a8.96 8.96 0 0 1 0 12.32',22),SPK_OFF=ic('M10.77 4.16 5.73 8.64H2.37v6.72h3.36l5.04 4.48zM14.6 8.7l6.6 6.6M21.2 8.7l-6.6 6.6',22);
 function vtShow(){VT.innerHTML=VO.on?SPK_ON:SPK_OFF;VT.setAttribute('aria-label',VO.on?'음성 안내 켜짐':'음성 안내 꺼짐')}
 VT.onclick=()=>{VO.on=VO.on?0:1;if(!VO.on)voCancel();try{sessionStorage.setItem('wvo',VO.on?'1':'0')}catch(e){}vlog(VO.on?'음성 켜짐':'음성 꺼짐');vtShow()};
 vtShow();
