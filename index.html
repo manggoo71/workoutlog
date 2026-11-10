@@ -193,11 +193,11 @@ html.bkp #wk{pointer-events:none}
 #wk.on{color:var(--tx)}
 @keyframes spn{to{transform:rotate(360deg)}}
 #tm{transform-origin:0 0;grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
-/* '운동 시작'(또는 운동 시간) 오른쪽에 '음성 켜짐'을 나란히. 사이 20px, 누르는 영역은 서로 겹치지 않게 가운데에 빈틈을 둔다 */
-.tlb{grid-column:1;grid-row:2;justify-self:start;display:flex;align-items:center;gap:20px}
+/* '운동 시작'(또는 운동 시간) 오른쪽에 '음성 켜짐'을 나란히. 사이 14px, 누르는 영역은 서로 겹치지 않게 가운데에 빈틈을 둔다 */
+.tlb{grid-column:1;grid-row:2;justify-self:start;display:flex;align-items:center;gap:14px}
 #vt{display:inline-flex;align-items:center;position:relative;top:-4px;margin-top:2px;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1;transition:opacity .2s}
-#vt::after{content:"";position:absolute;top:-10px;bottom:-10px;left:-8px;right:-14px}
-#wk::after{content:"";position:absolute;top:-10px;bottom:-10px;left:-12px;right:-8px}
+#vt::after{content:"";position:absolute;top:-10px;bottom:-10px;left:-6px;right:-14px}
+#wk::after{content:"";position:absolute;top:-10px;bottom:-10px;left:-12px;right:-6px}
 html.bkp #vt{opacity:0;pointer-events:none}
 #wk{display:inline-flex;align-items:center;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
@@ -1244,7 +1244,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261110e';
+const BUILD='20261110f';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
