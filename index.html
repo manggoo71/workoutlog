@@ -183,7 +183,7 @@ body{overflow:visible}
 html.kbo #tw{opacity:0;pointer-events:none}
 #fb{position:absolute;left:0;right:0;bottom:0;height:var(--pb,124px);z-index:3;pointer-events:none;background:linear-gradient(to top,var(--bg) 0%,var(--bg) calc(100% - var(--gp)),color-mix(in srgb,var(--bg) 0%,transparent) 100%);transition:opacity .22s cubic-bezier(.25,1,.5,1)}
 html.kbo #fb{opacity:0}
-.tf{display:grid;grid-template-columns:1fr auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px}
+.tf{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;column-gap:8px;padding:12px 12px 12px 18px}
 .tl{display:contents}
 .spn{display:inline-flex;position:absolute;left:100%;top:50%;margin-top:-10px;width:20px;height:20px;align-items:center;opacity:0;color:var(--mu);transition:opacity .2s}
 .spn svg{flex:none;margin-left:6px;animation:spn .9s steps(8) infinite}
@@ -195,16 +195,15 @@ html.bkp #wk{pointer-events:none}
 #wk.on #wkt{font-size:16px;line-height:14px;transform:translateY(-1.33px)}
 @keyframes spn{to{transform:rotate(360deg)}}
 #tm{transform-origin:0 0;grid-column:1;grid-row:1;font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1}
-/* '운동 시작'(또는 운동 시간) 오른쪽에 '음성 켜짐'을 나란히. 사이 14px, 누르는 영역은 서로 겹치지 않게 가운데에 빈틈을 둔다 */
+/* '운동 시작'(또는 운동 시간) 오른쪽에 운동 시간 줄 */
 .tlb{grid-column:1;grid-row:2;justify-self:start;display:flex;align-items:center;gap:14px}
-#vt{display:inline-flex;align-items:center;position:relative;top:-4px;margin-top:2px;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1;transition:opacity .2s}
-#vt::after{content:"";position:absolute;top:-10px;bottom:-10px;left:-6px;right:-14px}
 #wk::after{content:"";position:absolute;top:-10px;bottom:-10px;left:-12px;right:-6px}
-html.bkp #vt{opacity:0;pointer-events:none}
 #wk{display:inline-flex;align-items:center;position:relative;top:-4px;margin-top:2px;margin-left:3px;font-variant-numeric:tabular-nums;padding:4px 0;font-size:14px;font-weight:600;color:var(--mu);line-height:1}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
-#tr{grid-column:3}
-#ts{grid-column:2;background:var(--ac);color:#fff}
+/* 음성 켜짐·꺼짐: 시작 버튼 왼쪽, 리셋 버튼과 같은 모양. 아이콘으로만 구분(스피커+소리 / 스피커+빗금) */
+#vt{grid-column:2}
+#tr{grid-column:4}
+#ts{grid-column:3;background:var(--ac);color:#fff}
 #ts.run{background:var(--ac2);color:var(--ac)}
 #tr:disabled svg{opacity:.35}
 .ib2:disabled:active{opacity:1}
@@ -225,7 +224,7 @@ html.bkp #vt{opacity:0;pointer-events:none}
 </header>
 <main id="pg"></main>
 <div id="fb"></div>
-<div id="tw"><i class="tsh tsc"></i><i class="tsh tsp"></i><i class="tbg"></i><i class="tbp tbh"></i><i class="tbp tbv"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><footer class="tf"><div class="tl"><span id="tm">00:00</span><div class="tlb"><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button><button id="vt">음성 켜짐</button></div></div><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
+<div id="tw"><i class="tsh tsc"></i><i class="tsh tsp"></i><i class="tbg"></i><i class="tbp tbh"></i><i class="tbp tbv"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><i class="tbp tbc"></i><footer class="tf"><div class="tl"><span id="tm">00:00</span><div class="tlb"><button id="wk"><span id="wkt">운동 시작</span><i class="spn"></i></button></div></div><button class="ib2" id="vt" aria-label="음성 안내"></button><button class="ib2" id="ts" aria-label="시작"></button><button class="ib2" id="tr" aria-label="리셋"></button></footer></div>
 <div id="dg"><div class="sh"><p id="dm"></p><div id="dx"></div><textarea id="dt"></textarea><div class="db"><button id="dd"></button><button id="dc">취소</button><button id="dk">확인</button></div></div></div>
 <script>
 const $=s=>document.querySelector(s);
@@ -1246,7 +1245,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261110g';
+const BUILD='20261110h';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1427,7 +1426,8 @@ function voTick(){
 setInterval(voTick,100);
 /* 음성 켜짐 ↔ 꺼짐(앱을 쓰는 동안만 기억, 완전히 종료하면 다시 켜짐) */
 const VT=$('#vt');
-function vtShow(){VT.textContent=VO.on?'음성 켜짐':'음성 꺼짐'}
+const SPK_ON=ic('M11.75 5 7.25 9h-3v6h3l4.5 4zM16.25 9a4.2 4.2 0 0 1 0 6M19.25 6.5a8 8 0 0 1 0 11',22),SPK_OFF=ic('M11.75 5 7.25 9h-3v6h3l4.5 4zM4.5 4.5l15 15',22);
+function vtShow(){VT.innerHTML=VO.on?SPK_ON:SPK_OFF;VT.setAttribute('aria-label',VO.on?'음성 안내 켜짐':'음성 안내 꺼짐')}
 VT.onclick=()=>{VO.on=VO.on?0:1;if(!VO.on)voCancel();try{sessionStorage.setItem('wvo',VO.on?'1':'0')}catch(e){}vlog(VO.on?'음성 켜짐':'음성 꺼짐');vtShow()};
 vtShow();
 /* 진단: 제목(운동일지)을 길게 누르면 음성 안내 상태와 최근 기록을 보여 준다 */
