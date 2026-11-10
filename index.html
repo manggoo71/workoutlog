@@ -1212,7 +1212,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261109a';
+const BUILD='20261110a';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1289,60 +1289,119 @@ $('#wk').onclick=async()=>{
 };
 setInterval(tshow,250);tshow();
 /* ── 휴식 타이머 음성 안내 ──
-   타이머가 30초를 지날 때마다 '30초' '60초' '1분 30초' … '10분'을 여성 음성으로 알려 준다(미리 만든 음성 파일 하나를 조각으로 재생).
+   타이머가 30초를 지날 때마다 '30초' '60초' '1분 30초' … '30분'을 여성 음성으로 알려 준다(30분까지, 미리 만든 음성 파일 하나를 조각으로 재생).
    · 다른 앱의 음악·영상은 줄이거나 멈추지 않고 그 위에 섞어서 낸다(오디오 세션 'ambient').
    · 이어폰(블루투스)이 연결돼 있을 때만 낸다. 웹에서는 출력 장치를 직접 알 수 없어서,
      블루투스로 나갈 때만 생기는 큰 출력 지연(0.07초 이상)으로 판단한다. 스피커일 때는 지연이 0.01~0.03초.
    · iOS는 화면을 탭한 순간에만 소리를 켤 수 있게 하므로, 탭할 때마다 오디오가 멈춰 있으면 다시 깨운다. */
-/* voice.m4a 안의 [시작 초, 길이 초]: 30초, 60초, 1분 30초 … 10분 (Supertonic 3 여성 음성 F1, 음성인식으로 20개 모두 확인) */
-const VSEG=[[0.350,0.889],[1.589,0.750],[2.690,0.959],[3.999,0.530],[4.878,1.110],[6.338,0.634],[7.322,1.075],[8.748,0.657],[9.755,1.040],[11.145,0.588],[12.083,0.936],[13.369,0.680],[14.399,0.982],[15.731,0.588],[16.669,1.226],[18.245,0.634],[19.229,0.948],[20.527,0.611],[21.488,0.959],[22.797,0.611]];
-const VO={ctx:null,buf:null,busy:0,pend:null};
+/* voice.m4a 안의 [시작 초, 길이 초]: 30초, 60초, 1분 30초 … 30분 (Supertonic 3 여성 음성, 60개 모두 음성인식으로 확인) */
+const VSEG=[[0.350,0.889],[1.589,0.750],[2.690,0.959],[3.999,0.530],[4.878,1.110],[6.338,0.634],[7.322,1.075],[8.748,0.657],[9.755,1.040],[11.145,0.588],[12.083,0.936],[13.369,0.680],[14.399,0.982],[15.731,0.588],[16.669,1.226],[18.245,0.634],[19.229,0.948],[20.527,0.611],[21.488,0.959],[22.797,0.611],[23.758,0.971],[25.078,0.750],[26.178,1.331],[27.859,0.785],[28.994,1.157],[30.500,0.913],[31.763,1.145],[33.258,0.785],[34.393,1.087],[35.830,0.727],[36.907,1.110],[38.367,0.762],[39.479,1.180],[41.008,0.808],[42.166,1.017],[43.534,0.785],[44.669,1.226],[46.245,1.059],[47.654,1.157],[49.160,0.727],[50.237,1.087],[51.674,0.831],[52.855,1.261],[54.466,0.901],[55.717,1.377],[57.444,1.006],[58.800,1.261],[60.411,0.820],[61.581,1.307],[63.238,0.739],[64.327,1.273],[65.949,0.797],[67.096,1.377],[68.823,0.855],[70.027,1.168],[71.546,0.901],[72.797,1.354],[74.500,0.843],[75.694,1.226],[77.270,0.785]];
+const VO={ctx:null,buf:null,busy:0,pend:null,warm:null,nz:null,ear:-1,lat:0,want:null,down:0,kick:0,fl:0,re:0};
+/* 진단 기록(제목을 길게 누르면 보임): 최근 60개 */
+function vlog(m){try{const a=JSON.parse(localStorage.getItem('wvlog')||'[]');a.push(new Date().toTimeString().slice(0,8)+' '+m);if(a.length>60)a.splice(0,a.length-60);localStorage.setItem('wvlog',JSON.stringify(a))}catch(e){}}
+const vsec=i=>{const s=(i+1)*30;return s===30?'30초':s===60?'60초':Math.floor(s/60)+'분'+(s%60?' 30초':'')};
 function voCtx(){
   if(VO.ctx)return VO.ctx;
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
   try{if(navigator.audioSession)navigator.audioSession.type='ambient'}catch(e){}
-  try{VO.ctx=new AC()}catch(e){return null}
-  voLoad();return VO.ctx;
+  let c;try{c=new AC()}catch(e){return null}
+  VO.ctx=c;VO.down=0;
+  /* iOS는 알림음·Siri·전화·이어폰 연결 변경 때 오디오를 'interrupted'로 멈춰 두고 스스로 안 푸는 경우가 있다 → 바로 다시 깨운다 */
+  c.onstatechange=()=>{if(VO.ctx!==c)return;vlog('오디오 '+c.state);if(c.state==='running'){VO.down=0;VO.fl=0;VO.re=0;voLat()}else voKick()};
+  voLoad();return c;
 }
 async function voLoad(){
   if(VO.buf||VO.busy||!VO.ctx)return;VO.busy=1;
   try{
-    const ab=await (await fetch('voice.m4a?v=2')).arrayBuffer();
+    const ab=await (await fetch('voice.m4a?v=3')).arrayBuffer();
     VO.buf=await new Promise((ok,no)=>{const p=VO.ctx.decodeAudioData(ab,ok,no);if(p&&p.catch)p.catch(no)});
-  }catch(e){}
+  }catch(e){vlog('음성 파일 불러오기 실패')}
   VO.busy=0;
 }
-function voWake(){if(document.hidden)return;const c=voCtx();if(!c)return;if(c.state!=='running')c.resume().catch(()=>{});if(!VO.buf)voLoad()}
+/* 탭 없이 깨우기: 멈춘 지 1.5초마다 다시 시도. 'interrupted'는 resume만으로 안 풀려서 suspend→resume로 한 번 털어 준다 */
+function voKick(f){
+  const c=VO.ctx;if(!c||document.hidden||c.state==='running'||c.state==='closed')return;
+  const t=Date.now();if(!VO.down)VO.down=t;if(!f&&t-VO.kick<1500)return;VO.kick=t;
+  const st=c.state;
+  try{(st==='interrupted'?c.suspend().catch(()=>{}).then(()=>c.resume()):c.resume()).catch(()=>{if(!VO.fl){VO.fl=1;vlog('다시 켜기 실패('+st+')')}})}catch(e){}
+}
+/* 탭할 때: 멈춰 있으면 켜고, 탭 없이 2초 넘게 못 깨운 상태(갇힘)면 이 탭에서 오디오를 새로 만든다(음성 데이터는 그대로 재사용) */
+function voNew(){const c=VO.ctx;vlog('오디오 새로 만듦('+(c?c.state:'-')+')');VO.ctx=null;VO.fl=0;if(c)try{c.close().catch(()=>{})}catch(e){}return voCtx()}
+function voWake(){
+  if(document.hidden)return;let c=voCtx();if(!c)return;
+  if(c.state!=='running'){
+    if(VO.down&&Date.now()-VO.down>2000){c=voNew();if(!c)return}
+    c.resume().catch(()=>{});
+  }
+  if(!VO.buf)voLoad();
+}
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,voWake,{capture:true,passive:true}));
 /* 앱으로 돌아오면 멈춰 있던 오디오를 바로 다시 깨운다(한 번 허락된 뒤라 탭 없이도 된다) */
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&VO.ctx&&VO.ctx.state!=='running')VO.ctx.resume().catch(()=>{})});
-addEventListener('pageshow',()=>{if(VO.ctx&&VO.ctx.state!=='running')VO.ctx.resume().catch(()=>{})});
-const voEar=()=>{const c=VO.ctx;return !!c&&c.state==='running'&&typeof c.outputLatency==='number'&&c.outputLatency>=.07};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){VO.down=0;return}voKick(1)});
+addEventListener('pageshow',()=>voKick(1));
+/* 이어폰 판단: 블루투스 출력 지연(0.07초 이상). 값이 0(아직 모름)이면 직전 판단을 유지하고, 0.05~0.07 사이는 흔들림으로 보고 유지 */
+function voLat(){const c=VO.ctx;if(!c||c.state!=='running')return;const l=c.outputLatency;if(typeof l!=='number'||!(l>.002))return;VO.lat=l;if(l>=.07)VO.ear=1;else if(l<.05)VO.ear=0}
+/* 블루투스 이어폰은 소리가 없으면 연결을 잠재워서 다시 깨는 동안(0.3~1초) 앞부분이 잘리거나 통째로 안 들린다.
+   경계 3초 전부터 들리지 않는 아주 작은 소리(-90dB)를 흘려 연결을 깨워 둔다 */
+function voWarm(sec){
+  const c=VO.ctx;if(!c||c.state!=='running'||VO.ear===0)return;
+  if(!VO.nz||VO.nz.sampleRate!==c.sampleRate){const n=c.createBuffer(1,c.sampleRate/2|0,c.sampleRate),a=n.getChannelData(0);for(let j=0;j<a.length;j++)a[j]=(Math.random()*2-1)*3e-5;VO.nz=n}
+  try{const s=c.createBufferSource();s.buffer=VO.nz;s.loop=true;s.connect(c.destination);s.start();s.stop(c.currentTime+sec);VO.warm=s}catch(e){}
+}
 function voPlay(i,dl){
-  const c=VO.ctx;if(!c||!VO.buf||!VSEG[i]||document.hidden||!voEar())return;
+  const c=VO.ctx;voLat();
+  if(VO.ear!==1){vlog(vsec(i)+' 건너뜀: 이어폰 아님('+Math.round(VO.lat*1000)+'ms)');return}
   const s=c.createBufferSource(),[o,d]=VSEG[i];s.buffer=VO.buf;s.connect(c.destination);
   /* 이어폰 지연만큼 먼저 시작해서 30초가 되는 순간 귀에 들리게 */
   const at=c.currentTime+Math.max(0,dl-(c.outputLatency||0));
-  s.start(at,o,d);VO.pend={s,at};
+  s.start(at,o,d);VO.pend={s,at};vlog(vsec(i)+' 재생('+Math.round(VO.lat*1000)+'ms)');
+}
+function voSay(i,dl){
+  const c=VO.ctx;if(!VSEG[i])return;
+  if(!c||!VO.buf){vlog(vsec(i)+' 건너뜀: '+(c?'음성 파일 준비 안 됨':'오디오 꺼짐(앱을 연 뒤 아직 탭 안 함)'));if(c)voLoad();return}
+  /* 오디오가 멈춰 있으면 깨워 보고, 2.5초 안에 깨어나면 조금 늦게라도 말한다 */
+  if(c.state!=='running'){VO.want={i,until:Date.now()+dl*1000+2500};voKick(1);vlog(vsec(i)+' 대기: 오디오 '+c.state);return}
+  voPlay(i,dl);
 }
 /* 아직 소리 나기 전인 예약을 취소(경계 직전에 멈춤·리셋한 경우) */
-function voCancel(){const p=VO.pend;VO.pend=null;if(p&&VO.ctx&&p.at>VO.ctx.currentTime+.01){try{p.s.stop()}catch(e){}}}
-let annK=-1,annLast=0;
+function voCancel(){
+  VO.want=null;const p=VO.pend;VO.pend=null;if(p&&VO.ctx&&p.at>VO.ctx.currentTime+.01){try{p.s.stop()}catch(e){}}
+  const w=VO.warm;VO.warm=null;if(w){try{w.stop()}catch(e){}}
+}
+let annK=-1,annLast=0,warmK=-1;
 function voTick(){
   const now=tnow(),k=Math.floor(now/30000),back=now<annLast-50;annLast=now;
+  const c=VO.ctx,on=!!c&&c.state==='running',vis=!document.hidden;
+  if(on)voLat();else if(T.st&&vis&&c){
+    /* 4초 넘게 못 깨우면 탭 없이도 한 번 새로 만들어 본다(안 되면 다음 탭에서 다시) */
+    if(VO.down&&Date.now()-VO.down>4000&&!VO.re){VO.re=1;const n=voNew();if(n)n.resume().catch(()=>{})}else voKick()}
+  /* 늦게 깨어난 오디오로 방금 지난 안내를 이어서 낸다 */
+  if(VO.want&&on){const w=VO.want;VO.want=null;if(Date.now()<w.until)voPlay(w.i,0);else vlog(vsec(w.i)+' 놓침: 오디오가 늦게 깨어남')}
   /* 멈춤·리셋·건너뜀이면 지금 위치에 맞춰 두고 */
-  if(annK<0||back||!T.st||k<annK-1||k>annK+1){if(back||!T.st)voCancel();annK=k;return}
+  if(annK<0||back||!T.st||k<annK-1||k>annK+1){if(back||!T.st){voCancel();warmK=-1}annK=k;return}
   /* 다음 경계는 이미 예약됨(경계 직전) */
   if(k<annK)return;
-  /* 돌고 있을 때 다음 30초 경계가 0.25초 안으로 다가오면 그 순간에 맞춰 예약 */
   const nk=annK+1,rem=nk*30000-now;
+  if(rem<=3000&&warmK!==nk&&on&&vis){warmK=nk;voWarm(rem/1000+2.5)}
+  /* 돌고 있을 때 다음 30초 경계가 0.25초 안으로 다가오면 그 순간에 맞춰 예약 */
   if(rem>250)return;
   annK=nk;
   /* 앱을 내렸다 돌아와서 이미 한참 지난 경계는 말하지 않는다 */
-  if(rem<-1500)return;
-  voPlay(nk-1,Math.max(0,rem/1000));
+  if(rem<-1500||!vis)return;
+  voSay(nk-1,Math.max(0,rem/1000));
 }
 setInterval(voTick,100);
+/* 진단: 제목(운동일지)을 길게 누르면 음성 안내 상태와 최근 기록을 보여 준다 */
+function voDiag(){
+  const c=VO.ctx;let a=[];try{a=JSON.parse(localStorage.getItem('wvlog')||'[]')}catch(e){}
+  const head='오디오: '+(c?c.state:'아직 안 켜짐')+' · 출력 지연: '+(c&&typeof c.outputLatency==='number'?Math.round(c.outputLatency*1000)+'ms':'모름')+'\n이어폰: '+(VO.ear===1?'연결됨':VO.ear===0?'아님':'모름')+' · 음성 파일: '+(VO.buf?'준비됨':'없음');
+  dlg('음성 안내 상태',{nc:1,ok:'복사하고 닫기',ta:head+'\n\n'+(a.length?a.slice().reverse().join('\n'):'기록 없음'),ro:1});$('#dt').style.height='42vh';
+}
+{let lp=0,lt=0;const ti=$('#ti');
+  ti.addEventListener('touchstart',()=>{lp=0;clearTimeout(lt);lt=setTimeout(()=>{lp=1;voDiag()},650)},{passive:true});
+  ['touchend','touchmove','touchcancel'].forEach(e=>ti.addEventListener(e,()=>clearTimeout(lt),{passive:true}));
+  document.addEventListener('click',e=>{if(lp&&e.target.closest&&e.target.closest('#ti')){lp=0;e.stopImmediatePropagation();e.preventDefault()}},true);
+}
 addEventListener('visibilitychange',tshow);
 addEventListener('visibilitychange',()=>{if(document.hidden){const a=document.activeElement;if(a&&a.matches&&a.matches('w-in')&&a.closest('.ps')){noRest=1;a.blur();noRest=0}}});
 const unpin=()=>{if(document.hidden)return;const a=document.activeElement;if(a&&a.matches&&a.matches('w-in,input,textarea'))return;document.body.style.transform='';kbNow=0;root.style.setProperty('--kb','0px');root.classList.remove('kbo')};
