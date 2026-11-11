@@ -852,7 +852,7 @@ pg.addEventListener('focusin',ev=>{
       const e=fnd(c.dataset.e).e,k=rowsOf(c).indexOf(row);if(e.ls!==k){e.ls=k;lsave()}
     }
   }
-  if(!noBring&&t.matches&&t.matches('w-in')&&t.closest('.ps'))bring(t);
+  if(!noBring&&t.matches&&t.matches('w-in')&&t.closest('.ps')){bring(t);settle(t)}
 });
 /* 세트 번호만 탭: 키보드·커서 없이 그 줄만 강조(파란 번호·칸) */
 function setCur(row,tap){
@@ -907,7 +907,7 @@ pg.addEventListener('touchend',e=>{
   }else{
     bring(t,1);
     arrange(t);t.focus({preventScroll:true});
-    caretEnd(t);
+    caretEnd(t);settle(t);
   }
 },{passive:false});
 /* 마우스(데스크톱): 클릭하면 커서, 커서가 있는 칸을 다시 클릭하면 지우기 */
@@ -998,7 +998,7 @@ function handoff(t){
     const extra=h.textContent;
     arrange(t);t.focus({preventScroll:true});caretEnd(t);
     if(extra){t.textContent+=extra;caretEnd(t);t.dispatchEvent(new Event('input',{bubbles:true}))}
-    h.textContent='';
+    h.textContent='';settle(t);
   };
   requestAnimationFrame(step);
 }
@@ -1269,7 +1269,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111h';
+const BUILD='20261111i';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1466,7 +1466,8 @@ vtShow();
 function voDiag(){
   const c=VO.ctx;let a=[];try{a=JSON.parse(localStorage.getItem('wvlog')||'[]')}catch(e){}
   const head='음성: '+(VO.on?'켜짐':'꺼짐')+' · 오디오: '+(c?c.state:'아직 안 켜짐')+'\n음성 파일: '+(VO.buf?'준비됨':'없음')+' · 출력 지연: '+(c&&typeof c.outputLatency==='number'?Math.round(c.outputLatency*1000)+'ms':'모름');
-  dlg('음성 안내 상태',{nc:1,ok:'복사하고 닫기',ta:head+'\n\n'+(a.length?a.slice().reverse().join('\n'):'기록 없음'),ro:1});$('#dt').style.height='42vh';
+  let fl=[];try{fl=JSON.parse(localStorage.getItem('wflog')||'[]')}catch(e){}
+  dlg('음성 안내 상태',{nc:1,ok:'복사하고 닫기',ta:head+' · 빌드 '+BUILD+'\n\n'+(a.length?a.slice().reverse().join('\n'):'기록 없음')+'\n\n[포커스 위치]\n'+(fl.length?fl.slice().reverse().join('\n'):'기록 없음'),ro:1});$('#dt').style.height='42vh';
 }
 {let lp=0,lt=0;const ti=$('#ti');
   ti.addEventListener('touchstart',()=>{lp=0;clearTimeout(lt);lt=setTimeout(()=>{lp=1;voDiag()},650)},{passive:true});
@@ -1686,8 +1687,19 @@ function bring(el,force,soft){
   /* 키보드용 아래 여백을 방금 늘렸고 목표가 예전 끝보다 아래면, iOS가 늘어난 길이를 반영한 뒤(2프레임 뒤) 스크롤한다.
      바로 부드럽게 스크롤하면 iOS가 예전 끝에서 멈춰서, 목록 끝 근처 줄은 제자리에 머물렀음 */
   const to=p.scrollTop+d;
+  flog(row,{lo,hi,tg,top:r.top,kt,st:p.scrollTop,m0,to});
   if(to>m0+1)requestAnimationFrame(()=>requestAnimationFrame(()=>smoothTo(p,to)));else smoothTo(p,to);
 }
+/* 포커스 위치 진단 기록(제목 길게 누르기 창에 표시): 계산값과 0.8초 뒤 실제 위치 */
+function flog(row,o){
+  const c=row.closest&&row.closest('.c'),k=c&&row.classList.contains('r')?rowsOf(c).indexOf(row)+1:'칸',R=x=>Math.round(x);
+  setTimeout(()=>{try{
+    const a=JSON.parse(localStorage.getItem('wflog')||'[]'),rt=row.isConnected?R(row.getBoundingClientRect().top):'x';
+    a.push(new Date().toTimeString().slice(0,8)+' #'+k+' 시작'+R(o.top)+'→목표'+R(o.tg)+' 실제'+rt+' (lo'+R(o.lo)+' hi'+R(o.hi)+' kt'+R(o.kt)+' kb'+R(kbNow)+' vv'+(vv?R(vv.offsetTop)+'/'+R(vv.height):'-')+' st'+R(o.st)+'→'+R(o.to)+' max'+R(o.m0)+' sat'+satNow()+' w'+innerWidth+')');
+    if(a.length>15)a.splice(0,a.length-15);localStorage.setItem('wflog',JSON.stringify(a))}catch(e){}},800);
+}
+/* 키보드·커서가 다 자리 잡은 뒤(iOS가 스스로 칸을 보이게 스크롤하는 경우가 있음) 포커스 기준 위치에서 벗어나 있으면 한 번 더 맞춘다 */
+function settle(t){clearTimeout(settle.t);settle.t=setTimeout(()=>{if(document.activeElement===t&&kbNow>=50)bring(t,1)},380)}
 const hard=t=>{
   if(!t||!t.setAttribute||t._h)return;
   if(t.matches&&t.matches('input,textarea,w-in')){
