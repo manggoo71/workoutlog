@@ -855,12 +855,14 @@ pg.addEventListener('focusin',ev=>{
   if(!noBring&&t.matches&&t.matches('w-in')&&t.closest('.ps'))bring(t);
 });
 /* 세트 번호만 탭: 키보드·커서 없이 그 줄만 강조(파란 번호·칸) */
-function setCur(row){
+function setCur(row,tap){
   const c=row&&row.closest('.c');if(!c||row.classList.contains('rm'))return;
+  /* 번호를 직접 탭했으면 휴식 타이머를 0부터 다시 */
+  if(tap)restGo();
   c.querySelectorAll('.r.cur').forEach(r=>{if(r!==row)r.classList.remove('cur')});row.classList.add('cur');
   const e=fnd(c.dataset.e).e,k=rowsOf(c).indexOf(row);if(k>=0&&e.ls!==k){e.ls=k;lsave()}
 }
-pg.addEventListener('click',e=>{const n=e.target.closest&&e.target.closest('.r .n');if(n&&!typing())setCur(n.closest('.r'))});
+pg.addEventListener('click',e=>{const n=e.target.closest&&e.target.closest('.r .n');if(n&&!typing())setCur(n.closest('.r'),1)});
 /* 탭: 기본 포커스(화면 튐의 원인) 대신, 먼저 위치를 잡고 스크롤 없이 포커스 */
 let tp=null;
 const KEEP=new Set(['as','ds','ax','up','dn','un']);
@@ -887,12 +889,14 @@ pg.addEventListener('touchend',e=>{
   if(!tp)return;const c=e.changedTouches[0],q=tp;tp=null;
   if(Math.hypot(c.clientX-q.x,c.clientY-q.y)>8||!e.cancelable)return;
   e.preventDefault();
-  if(q.out){const a=typing();if(a)a.blur();if(q.cur)setCur(q.cur);return}
+  if(q.out){const a=typing();if(a)a.blur();if(q.cur)setCur(q.cur,1);return}
   if(q.b){q.b.click();return}
   const t=q.t;
   if(q.same){clearField(t);caretEnd(t);return}
   /* 커서는 있는데 키보드가 내려가 있던 칸(앱 전환 등): 처음 누른 것처럼 다시 시작 */
   if(document.activeElement===t){noRest=1;t.blur();noRest=0}
+  /* 강조(파란 번호·칸)는 탭한 순간 바로 옮긴다. 커서는 키보드·스크롤이 자리 잡은 뒤에 넘어감 */
+  {const rw=t.closest('.r');if(rw)setCur(rw)}
   if(kbNow<50&&DUR){
     /* 키보드가 없을 때: 화면 위쪽의 보이지 않는 칸에 먼저 포커스해 키보드를 올리고(iOS가 화면 전체를 밀지 않음),
        목록을 옮긴 뒤 키보드 높이가 확인되면 실제 칸으로 포커스를 넘긴다 */
@@ -984,8 +988,10 @@ function handoff(t){
     const el=performance.now()-t0;
     if(kbNow<50&&el<900){requestAnimationFrame(step);return}
     if(kbNow>=50&&vv&&el<1400){
+      /* 키보드가 올라온 뒤 칸이 가려져 있으면 한 번만 다시 맞추고, 그 뒤엔 (더 못 움직여도) 스크롤이 멈추는 대로 바로 커서를 넘긴다
+         (예전엔 가려짐 판정이 계속 참이면 1.4초를 다 기다려서 커서·강조가 아주 늦게 바뀌었음) */
       const r=t.getBoundingClientRect(),kt=vv.offsetTop+vv.height-ACC;
-      if(r.bottom>kt-4||r.top<p.getBoundingClientRect().top){if(!t._fix){t._fix=1;bring(t,1)}still=0;requestAnimationFrame(step);return}
+      if(!t._fix&&(r.bottom>kt+8||r.top<p.getBoundingClientRect().top)){t._fix=1;bring(t,1);still=0;requestAnimationFrame(step);return}
     }
     if(still<4&&el<1400){requestAnimationFrame(step);return}
     t._fix=0;
@@ -1263,7 +1269,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111e';
+const BUILD='20261111f';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1655,11 +1661,11 @@ function bring(el,force,soft){
     if(row!==el)lo=Math.max(lo,fLine(r.height));
     else lo=Math.max(lo,pipLine()+6);
     /* 줄 아래 끝은 작은 타이머 알약(키보드 윗선 + 약 18px)보다 위면 된다 */
-    let hi=(kbNow>50?kt+8:kt-20)-r.height;
+    let hi=kt+8-r.height;
     /* 종목의 마지막 세트면 그 아래 + 버튼까지 키보드 위에 보이게(연속 추가). PiP 여유보다 이쪽이 우선 */
     if(row!==el){let nx=row.nextElementSibling;while(nx&&nx.classList&&nx.classList.contains('rm'))nx=nx.nextElementSibling;
       const bt=!nx&&row.closest('.c')&&row.closest('.c').querySelector('.bt');
-      if(bt)hi=Math.min(hi,(kbNow>50?btVis():kt)+2-(bt.getBoundingClientRect().bottom-r.top))}
+      if(bt)hi=Math.min(hi,btVis()+2-(bt.getBoundingClientRect().bottom-r.top))}
     return {lo,hi};
   };
   if(soft){
