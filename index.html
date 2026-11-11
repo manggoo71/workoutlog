@@ -363,7 +363,10 @@ function btAdd(ps,c,ob){
   const bt=c.querySelector('.bt');if(!bt)return ps.scrollTop;
   const L=btLine(),nb=ps.getBoundingClientRect().top+yIn(bt,ps)+bt.offsetHeight-ps.scrollTop;
   if(nb<=L)return ps.scrollTop;
-  return ps.scrollTop+nb-(ob!=null&&ob<=L+1?ob:L);
+  /* 키보드가 있을 때는 + 가 기준선보다 조금 아래여도 아직 보이는 자리(키보드 위)면 그 자리에 그대로 둔다.
+     (기준선까지 끌어올리면 포커스 정책이 다시 내려 보내서 누를 때마다 위로 갔다 내려오는 출렁임이 생김) */
+  const V=kbNow>50?kbTop()+2:L+1;
+  return ps.scrollTop+nb-(ob!=null&&ob<=V?ob:L);
 }
 /* 세트 삭제: + 가 기준선 근처(한 줄 높이 안)에 있으면 그 자리에 고정(위쪽 줄들이 내려옴), 아니면 그대로(아래쪽이 올라옴).
    추가할 때 + 가 고정되는 구간과 같아서, 추가·삭제가 정확히 반대로 움직인다 */
@@ -1246,7 +1249,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111b';
+const BUILD='20261111c';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1639,7 +1642,12 @@ function bring(el,force,soft){
       const pitch=pv&&pv.classList&&pv.classList.contains('r')?r.top-pv.getBoundingClientRect().top:r.height+8;
       lo=Math.max(lo,pipLine()+pitch+6)}
     else lo=Math.max(lo,pipLine()+6);
-    return {lo,hi:kt-20-r.height};
+    let hi=kt-20-r.height;
+    /* 종목의 마지막 세트면 그 아래 + 버튼까지 키보드 위에 보이게(연속 추가). PiP 여유보다 이쪽이 우선 */
+    if(row!==el){let nx=row.nextElementSibling;while(nx&&nx.classList&&nx.classList.contains('rm'))nx=nx.nextElementSibling;
+      const bt=!nx&&row.closest('.c')&&row.closest('.c').querySelector('.bt');
+      if(bt)hi=Math.min(hi,kt+2-(bt.getBoundingClientRect().bottom-r.top))}
+    return {lo,hi};
   };
   if(soft){
     const r=box(),{lo,hi}=lim(r);
