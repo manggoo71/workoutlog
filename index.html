@@ -1269,7 +1269,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111f';
+const BUILD='20261111h';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1646,9 +1646,10 @@ function release(){
   };
   relRaf=requestAnimationFrame(wait);
 }
-/* 화면 위에 떠 있는 PiP 영상(유튜브 등)의 가장 큰 크기 아래 끝. 웹에서는 PiP를 알 수 없어 iOS 최대 크기(16:9, 좌우 13px, 상태 표시줄 아래 6px)로 가정 */
+/* 화면 위에 떠 있는 PiP 영상(유튜브 등)의 가장 큰 크기 아래 끝. 웹에서는 PiP를 알 수 없어 iOS 최대 크기(16:9, 좌우 약 11px, 상태 표시줄 바로 아래)로 가정.
+   iPhone 17 Pro 실측: 위 62 · 아래 275.4 · 폭 380.6 */
 const satNow=()=>{try{const o=JSON.parse(localStorage.getItem('wsa')||'null');if(o&&o.t>0)return o.t}catch(e){}return 47};
-const pipLine=()=>satNow()+6+(innerWidth-26)*9/16;
+const pipLine=()=>satNow()+(innerWidth-22)*9/16;
 /* 입력칸 위치. 세트 줄은 '포커스 기준선'(PiP가 최대 크기여도 그 아래 세트 한 줄이 보이는 자리: PiP 아래 끝 + 한 줄 + 6px)에 맞춘다.
    높이·각도 칸은 '상단 탭 아래 ~ 키보드 위' 영역의 가운데(PiP 아래).
    (맨 위 종목의 첫 세트처럼 더 내릴 수 없는 경우는 스크롤 0에서 멈춤) 둘이 부딪치면 입력칸이 키보드에 가리지 않는 쪽이 우선 */
@@ -1674,7 +1675,7 @@ function bring(el,force,soft){
   }
   if(!force&&p._be===el&&performance.now()-p._bt<450)return;
   p._be=el;p._bt=performance.now();
-  setPad(p);
+  const m0=p.scrollHeight-p.clientHeight;setPad(p);
   const r=box(),{lo,hi}=lim(r);
   let tg;
   if(soft)tg=r.top<lo?lo:r.top;
@@ -1682,7 +1683,10 @@ function bring(el,force,soft){
   tg=Math.min(tg,hi);
   const d=r.top-tg;
   if(Math.abs(d)<3)return;
-  smoothTo(p,p.scrollTop+d);
+  /* 키보드용 아래 여백을 방금 늘렸고 목표가 예전 끝보다 아래면, iOS가 늘어난 길이를 반영한 뒤(2프레임 뒤) 스크롤한다.
+     바로 부드럽게 스크롤하면 iOS가 예전 끝에서 멈춰서, 목록 끝 근처 줄은 제자리에 머물렀음 */
+  const to=p.scrollTop+d;
+  if(to>m0+1)requestAnimationFrame(()=>requestAnimationFrame(()=>smoothTo(p,to)));else smoothTo(p,to);
 }
 const hard=t=>{
   if(!t||!t.setAttribute||t._h)return;
