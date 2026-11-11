@@ -356,6 +356,8 @@ const fxOff=(f,el,p)=>{const v=f.off.get(el);return v?v[0]+(v[1]-v[0])*p:0};
 /* 진행 중인 움직임을 끝 상태로 확정 */
 /* + 버튼의 아래 기준선(화면 y): 키보드가 있으면 키보드 위 12px, 없으면 타이머 위 페이드가 거의 닿지 않는 36px 위 */
 const btLine=()=>kbNow>50?kbTop()-12:TW.getBoundingClientRect().top-36;
+/* 키보드가 있을 때 + 버튼이 가려지지 않는 가장 아래(입력 보조 막대 윗선) */
+const btVis=()=>kbTop()+ACC;
 const btBottom=c=>{const b=c.querySelector('.bt');return b?b.getBoundingClientRect().bottom:null};
 const fxLeft=ps=>{const f=ps&&FX.get(ps);return f?Math.max(0,(f.tr.length-1)/FXR*1000-(performance.now()-f.t0)):0};
 /* 세트 추가: 새 + 위치가 기준선 안이면 그대로(자연스럽게 아래로), 넘으면 + 를 원래 자리에 고정(가려져 있었으면 기준선까지) */
@@ -363,10 +365,11 @@ function btAdd(ps,c,ob){
   const bt=c.querySelector('.bt');if(!bt)return ps.scrollTop;
   const L=btLine(),nb=ps.getBoundingClientRect().top+yIn(bt,ps)+bt.offsetHeight-ps.scrollTop;
   if(nb<=L)return ps.scrollTop;
-  /* 키보드가 있을 때는 + 가 기준선보다 조금 아래여도 아직 보이는 자리(키보드 위)면 그 자리에 그대로 둔다.
-     (기준선까지 끌어올리면 포커스 정책이 다시 내려 보내서 누를 때마다 위로 갔다 내려오는 출렁임이 생김) */
-  const V=kbNow>50?kbTop()+2:L+1;
-  return ps.scrollTop+nb-(ob!=null&&ob<=V?ob:L);
+  /* 키보드가 있을 때는 + 가 기준선보다 아래여도 입력 보조 막대(∧∨✓) 위에 다 보이면 그 자리에 그대로 둔다
+     (+ 는 오른쪽 끝이라 가운데 작은 타이머와 겹치지 않음). 막대에 걸려 있으면 막대 바로 위까지만 올린다.
+     기준선까지 끌어올리면 포커스 정책이 다시 내려 보내서 누를 때마다 위로 갔다 내려오는 출렁임이 생김 */
+  if(kbNow>50){const V=btVis();return ps.scrollTop+nb-(ob!=null&&ob<=V+2?ob:Math.min(V-4,Math.max(L,ob==null?L:ob)))}
+  return ps.scrollTop+nb-(ob!=null&&ob<=L+1?ob:L);
 }
 /* 세트 삭제: + 가 기준선 근처(한 줄 높이 안)에 있으면 그 자리에 고정(위쪽 줄들이 내려옴), 아니면 그대로(아래쪽이 올라옴).
    추가할 때 + 가 고정되는 구간과 같아서, 추가·삭제가 정확히 반대로 움직인다 */
@@ -1249,7 +1252,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111c';
+const BUILD='20261111d';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1642,11 +1645,12 @@ function bring(el,force,soft){
       const pitch=pv&&pv.classList&&pv.classList.contains('r')?r.top-pv.getBoundingClientRect().top:r.height+8;
       lo=Math.max(lo,pipLine()+pitch+6)}
     else lo=Math.max(lo,pipLine()+6);
-    let hi=kt-20-r.height;
+    /* 줄 아래 끝은 작은 타이머 알약(키보드 윗선 + 약 18px)보다 위면 된다 */
+    let hi=(kbNow>50?kt+8:kt-20)-r.height;
     /* 종목의 마지막 세트면 그 아래 + 버튼까지 키보드 위에 보이게(연속 추가). PiP 여유보다 이쪽이 우선 */
     if(row!==el){let nx=row.nextElementSibling;while(nx&&nx.classList&&nx.classList.contains('rm'))nx=nx.nextElementSibling;
       const bt=!nx&&row.closest('.c')&&row.closest('.c').querySelector('.bt');
-      if(bt)hi=Math.min(hi,kt+2-(bt.getBoundingClientRect().bottom-r.top))}
+      if(bt)hi=Math.min(hi,(kbNow>50?btVis():kt)+2-(bt.getBoundingClientRect().bottom-r.top))}
     return {lo,hi};
   };
   if(soft){
