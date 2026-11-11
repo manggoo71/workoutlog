@@ -202,6 +202,7 @@ html.bkp #wk{pointer-events:none}
 .tf .ib2{grid-row:1;width:56px;height:56px;--r:16px}
 /* 음성 켜짐·꺼짐: 시작 버튼 왼쪽, 리셋 버튼과 같은 모양. 아이콘으로만 구분(스피커+소리 / 스피커+빗금) */
 #vt{grid-column:2}
+#vt svg{transition:opacity .25s}#vt.zz svg{opacity:.4}
 #tr{grid-column:4}
 #ts{grid-column:3;background:var(--ac);color:#fff}
 #ts.run{background:var(--ac2);color:var(--ac)}
@@ -1245,7 +1246,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111a';
+const BUILD='20261111b';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1331,7 +1332,7 @@ setInterval(tshow,250);tshow();
    · iOS는 화면을 탭한 순간에만 소리를 켤 수 있게 하므로, 탭할 때마다 오디오가 멈춰 있으면 다시 깨운다. */
 /* voice.m4a 안의 [시작 초, 길이 초]: 30초, 60초, 1분 30초 … 30분 (Supertonic 3 여성 음성, 60개 모두 음성인식으로 확인) */
 const VSEG=[[0.350,0.889],[1.589,0.750],[2.690,0.959],[3.999,0.530],[4.878,1.110],[6.338,0.634],[7.322,1.075],[8.748,0.657],[9.755,1.040],[11.145,0.588],[12.083,0.936],[13.369,0.680],[14.399,0.982],[15.731,0.588],[16.669,1.226],[18.245,0.634],[19.229,0.948],[20.527,0.611],[21.488,0.959],[22.797,0.611],[23.758,0.971],[25.078,0.750],[26.178,1.331],[27.859,0.785],[28.994,1.157],[30.500,0.913],[31.763,1.145],[33.258,0.785],[34.393,1.087],[35.830,0.727],[36.907,1.110],[38.367,0.762],[39.479,1.180],[41.008,0.808],[42.166,1.017],[43.534,0.785],[44.669,1.226],[46.245,1.059],[47.654,1.157],[49.160,0.727],[50.237,1.087],[51.674,0.831],[52.855,1.261],[54.466,0.901],[55.717,1.377],[57.444,1.006],[58.800,1.261],[60.411,0.820],[61.581,1.307],[63.238,0.739],[64.327,1.273],[65.949,0.797],[67.096,1.377],[68.823,0.855],[70.027,1.168],[71.546,0.901],[72.797,1.354],[74.500,0.843],[75.694,1.226],[77.270,0.785]];
-const VO={ctx:null,buf:null,busy:0,pend:null,warm:null,nz:null,want:null,down:0,kick:0,fl:0,re:0,on:1};
+const VO={ctx:null,buf:null,busy:0,pend:null,warm:null,nz:null,want:null,down:0,kick:0,fl:0,ki:0,stale:0,on:1};
 try{if(!FRESH&&sessionStorage.getItem('wvo')==='0')VO.on=0}catch(e){}
 /* 진단 기록(제목을 길게 누르면 보임): 최근 60개 */
 function vlog(m){try{const a=JSON.parse(localStorage.getItem('wvlog')||'[]');a.push(new Date().toTimeString().slice(0,8)+' '+m);if(a.length>60)a.splice(0,a.length-60);localStorage.setItem('wvlog',JSON.stringify(a))}catch(e){}}
@@ -1343,7 +1344,7 @@ function voCtx(){
   let c;try{c=new AC()}catch(e){return null}
   VO.ctx=c;VO.down=0;
   /* iOS는 알림음·Siri·전화·이어폰 연결 변경 때 오디오를 'interrupted'로 멈춰 두고 스스로 안 푸는 경우가 있다 → 바로 다시 깨운다 */
-  c.onstatechange=()=>{if(VO.ctx!==c||VO.rf)return;const q=VO.qs&&c.state==='running';VO.qs=0;if(!q)vlog('오디오 '+c.state);if(c.state==='running'){VO.down=0;VO.fl=0;VO.re=0}else voKick()};
+  c.onstatechange=()=>{if(VO.ctx!==c)return;const q=VO.qs&&c.state==='running';VO.qs=0;if(!q)vlog('오디오 '+c.state);if(c.state==='running'){VO.down=0;VO.fl=0;VO.ki=0}else voKick()};
   voLoad();return c;
 }
 async function voLoad(){
@@ -1356,25 +1357,32 @@ async function voLoad(){
 }
 /* 탭 없이 깨우기: 멈춘 지 1.5초마다 다시 시도. 'interrupted'는 resume만으로 안 풀려서 suspend→resume로 한 번 털어 준다 */
 function voKick(f){
-  const c=VO.ctx;if(!c||VO.rf||document.hidden||c.state==='running'||c.state==='closed')return;
+  const c=VO.ctx;if(!c||document.hidden||c.state==='running'||c.state==='closed')return;
   const t=Date.now();if(!VO.down)VO.down=t;if(!f&&t-VO.kick<1500)return;VO.kick=t;
   const st=c.state;
-  try{(st==='interrupted'?c.suspend().catch(()=>{}).then(()=>c.resume()):c.resume()).catch(()=>{if(!VO.fl){VO.fl=1;vlog('다시 켜기 실패('+st+')')}})}catch(e){}
+  /* 'interrupted'는 보통 iOS가 스스로 풀어 준다. 처음 두 번은 resume만, 그래도 갇혀 있으면 suspend→resume로 털어 준다 */
+  const hard=st==='interrupted'&&++VO.ki>2;
+  try{(hard?c.suspend().catch(()=>{}).then(()=>c.resume()):c.resume()).catch(()=>{if(!VO.fl){VO.fl=1;vlog('다시 켜기 실패('+st+')')}})}catch(e){}
 }
-/* 탭할 때: 멈춰 있으면 켜고, 탭 없이 2초 넘게 못 깨운 상태(갇힘)면 이 탭에서 오디오를 새로 만든다(음성 데이터는 그대로 재사용) */
+/* 탭할 때: 멈춰 있으면 켜고, 2초 넘게 못 깨운 상태(갇힘)이거나 앱에 막 돌아온 뒤의 첫 탭이면 이 탭에서 오디오를 새로 만든다(음성 데이터는 그대로 재사용).
+   iOS는 다른 앱에 다녀오면 오디오가 'running'이라고 하면서 소리를 안 내는 경우가 있어서, 돌아온 뒤 첫 탭에서 새것으로 바꿔 둔다.
+   새 오디오는 탭(사용자 동작) 안에서만 켤 수 있어서 탭 없이 새로 만들지는 않는다 */
 function voNew(){const c=VO.ctx;vlog('오디오 새로 만듦('+(c?c.state:'-')+')');VO.ctx=null;VO.fl=0;if(c)try{c.close().catch(()=>{})}catch(e){}return voCtx()}
 function voWake(){
   if(document.hidden)return;let c=voCtx();if(!c)return;
-  if(c.state!=='running'){
-    if(VO.down&&Date.now()-VO.down>2000){c=voNew();if(!c)return}
-    c.resume().catch(()=>{});
-  }
+  const busy=VO.pend&&c.currentTime<VO.pend.at+2;
+  if(!busy&&(VO.stale||(c.state!=='running'&&VO.down&&Date.now()-VO.down>2000))){VO.stale=0;c=voNew();if(!c)return}
+  if(c.state!=='running')c.resume().catch(()=>{});
   if(!VO.buf)voLoad();
 }
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,voWake,{capture:true,passive:true}));
-/* 앱으로 돌아오면 멈춰 있던 오디오를 바로 다시 깨운다(한 번 허락된 뒤라 탭 없이도 된다) */
-document.addEventListener('visibilitychange',()=>{if(document.hidden){VO.down=0;return}voKick(1)});
-addEventListener('pageshow',()=>voKick(1));
+/* 앱으로 돌아오면: iOS가 스스로 오디오를 되살릴 시간을 0.7초 준 뒤, 그래도 멈춰 있으면 탭 없이 깨운다 */
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){VO.down=0;vlog('앱 내려감');return}
+  vlog('앱 돌아옴('+(VO.ctx?VO.ctx.state:'오디오 없음')+')');if(VO.ctx)VO.stale=1;VO.ki=0;setTimeout(()=>voKick(1),700);
+});
+addEventListener('pageshow',e=>{if(e.persisted){VO.ki=0;setTimeout(()=>voKick(1),700)}});
+vlog('앱 시작 '+BUILD);
 /* 블루투스 이어폰은 소리가 없으면 연결을 잠재워서 다시 깨는 동안(0.3~1초) 앞부분이 잘리거나 통째로 안 들린다.
    경계 3초 전부터 들리지 않는 아주 작은 소리(-90dB)를 흘려 연결을 깨워 둔다 */
 function voWarm(sec){
@@ -1405,9 +1413,9 @@ let annK=-1,annLast=0,warmK=-1;
 function voTick(){
   const now=tnow(),k=Math.floor(now/30000),back=now<annLast-50;annLast=now;
   const c=VO.ctx,on=!!c&&c.state==='running',vis=!document.hidden;
-  if(!on&&T.st&&vis&&c){
-    /* 4초 넘게 못 깨우면 탭 없이도 한 번 새로 만들어 본다(안 되면 다음 탭에서 다시) */
-    if(VO.down&&Date.now()-VO.down>4000&&!VO.re){VO.re=1;const n=voNew();if(n)n.resume().catch(()=>{})}else voKick()}
+  if(!on&&T.st&&vis&&c)voKick();
+  /* 음성이 켜져 있는데 아직 소리를 낼 수 없는 상태(앱을 연 뒤 아직 탭 안 함, 오디오 멈춤, 음성 파일 준비 중)면 스피커 아이콘을 흐리게 */
+  const zz=VO.on&&(!on||!VO.buf);if(VT._zz!==zz){VT._zz=zz;VT.classList.toggle('zz',zz)}
   /* 늦게 깨어난 오디오로 방금 지난 안내를 이어서 낸다 */
   if(VO.want&&on){const w=VO.want;VO.want=null;if(Date.now()<w.until)voPlay(w.i,0);else vlog(vsec(w.i)+' 놓침: 오디오가 늦게 깨어남')}
   /* 멈춤·리셋·건너뜀이면 지금 위치에 맞춰 두고 */
