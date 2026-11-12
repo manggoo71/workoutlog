@@ -1205,11 +1205,13 @@ async function ghBackup(g){
   const r=await fetch('https://api.github.com/repos/'+g.r+'/contents/'+GHF,{method:'PUT',headers:{...ghH(g),'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(!r.ok)throw new Error(r.status);
 }
-async function doBackup(){
+async function doBackup(pre){
+  pre=pre||'';
   const g=ghCfg();
-  if(!g)return fileBackup();
-  try{await ghBackup(g);try{localStorage.setItem('wbk',Date.now())}catch(e){}await dlg('GitHub에 백업했어요.',{nc:1})}
-  catch(e){await dlg('GitHub에 백업하지 못했어요. 인터넷 연결과 연결 정보를 확인해 주세요. ('+(e&&e.message||'')+')',{nc:1})}
+  /* 파일 백업(공유 창)은 탭 안에서만 열리므로, 자동 종료 때는 확인을 한 번 받은 뒤 연다 */
+  if(!g){if(pre&&!await dlg(pre+'백업 파일을 저장할까요?',{ok:'저장'}))return;return fileBackup()}
+  try{await ghBackup(g);try{localStorage.setItem('wbk',Date.now())}catch(e){}await dlg(pre+'GitHub에 백업했어요.',{nc:1})}
+  catch(e){await dlg(pre+'GitHub에 백업하지 못했어요. 인터넷 연결과 연결 정보를 확인해 주세요. ('+(e&&e.message||'')+')',{nc:1})}
 }
 async function ghConnect(){
   const g=ghCfg();
@@ -1287,7 +1289,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261112a';
+const BUILD='20261112b';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1337,10 +1339,11 @@ document.addEventListener('focusout',e=>{
 /* 운동 시간(시:분): '운동 시작'을 누르면 시작, 시간을 누르면 리셋 */
 let WS=0;
 try{WS=+localStorage.getItem('wws')||0}catch(e){}
-if(WS&&Date.now()-WS>12*36e5)WS=0;
-/* 앱을 완전히 종료했다가 새로 실행하면 운동 시간도 멈추고 '운동 시작'으로 되돌린다 */
-if(FRESH&&WS){WS=0;try{localStorage.setItem('wws','')}catch(e){}}
+/* 운동 시간은 앱을 완전히 종료했다가 다시 열어도 '운동 종료'(시간 탭) 전까지 그대로 이어진다.
+   3시간이 넘으면 자동으로 종료하고 백업한다(앱이 꺼져 있었으면 다시 열 때). */
+const WMAX=3*36e5;
 function wshow(){
+  if(WS&&Date.now()-WS>=WMAX&&!document.hidden){finishWork(1);return}
   const b=$('#wkt'),bk=document.documentElement.classList.contains('bkp');let t=bk?'백업 중':'운동 시작';
   if(WS&&!bk){const sc=Math.max(0,Math.floor((Date.now()-WS)/1e3)),z=n=>String(n).padStart(2,'0');t=z(Math.floor(sc/3600))+':'+z(Math.floor(sc/60)%60)+':'+z(sc%60)}
   if(b.textContent!==t)b.textContent=t;
@@ -1356,14 +1359,20 @@ function endWork(){
   document.querySelectorAll('#pg .r.cur').forEach(r=>r.classList.remove('cur'));
   save();
 }
-$('#wk').onclick=async()=>{
+$('#wk').onclick=()=>{
   const rt=document.documentElement;if(rt.classList.contains('bkp'))return;
-  const end=!!WS;WS=WS?0:Date.now();try{localStorage.setItem('wws',WS||'')}catch(e){}
-  if(!end){wshow();return}
-  /* 운동 종료: '백업 중'과 진행 표시(누를 수 없음) → 백업 완료 안내의 확인을 누르면 '운동 시작'으로 */
-  rt.classList.add('bkp');wshow();endWork();
-  try{await doBackup()}finally{rt.classList.remove('bkp');wshow()}
+  if(!WS){WS=Date.now();try{localStorage.setItem('wws',WS)}catch(e){}wshow();return}
+  finishWork(0);
 };
+/* 운동 종료: '백업 중'과 진행 표시(누를 수 없음) → 백업 완료 안내의 확인을 누르면 '운동 시작'으로.
+   자동 종료(3시간)면 안내 앞에 그 사실을 덧붙인다 */
+async function finishWork(auto){
+  const rt=document.documentElement;if(!WS||rt.classList.contains('bkp'))return;
+  const mins=Math.round((Date.now()-WS)/6e4);
+  WS=0;try{localStorage.setItem('wws','')}catch(e){}
+  rt.classList.add('bkp');wshow();endWork();
+  try{await doBackup(auto?'운동 시간이 3시간을 넘어 자동으로 종료했어요'+(mins>200?'(시작 후 '+Math.floor(mins/60)+'시간 '+mins%60+'분)':'')+'. ':'')}finally{rt.classList.remove('bkp');wshow()}
+}
 setInterval(tshow,250);tshow();
 /* ── 휴식 타이머 음성 안내 ──
    타이머가 30초를 지날 때마다 '30초' '60초' '1분 30초' … '30분'을 여성 음성으로 알려 준다(30분까지, 미리 만든 음성 파일 하나를 조각으로 재생).
