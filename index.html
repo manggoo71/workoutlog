@@ -18,8 +18,26 @@ try{var q=JSON.parse(localStorage.getItem('wsa')||'null'),d=document.documentEle
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png?v=3">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
-<meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" id="tcm" content="#eceef2">
+<script>
+/* 상단 상태 표시줄 영역 색: 홈 화면 앱은 이 영역을 웹 화면 밖에서 theme-color로 칠하는데,
+   iOS는 라이트·다크 전환 때 media 조건을 다시 보지 않아 처음 연 모드 색에 머물렀다.
+   그래서 지금 모드를 직접 확인해 theme-color 값을 바꾸고, 태그를 다시 붙여 iOS가 새 색을 읽게 한다 */
+(function(){try{
+  var m=document.getElementById('tcm'),q=matchMedia('(prefers-color-scheme: dark)');
+  function up(){
+    var t=document.documentElement.getAttribute('data-theme'),dk=t?t==='dark':q.matches,c=dk?'#0e1013':'#eceef2';
+    if(m.getAttribute('content')===c)return;
+    m.setAttribute('content',c);var h=m.parentNode;if(h){h.removeChild(m);h.appendChild(m)}
+  }
+  up();
+  if(q.addEventListener)q.addEventListener('change',up);else if(q.addListener)q.addListener(up);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)up()});
+  addEventListener('pageshow',up);
+  new MutationObserver(up).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  window.tcUp=up;
+}catch(e){}})();
+</script>
 <style>
 :root{--sat:max(env(safe-area-inset-top,0px),var(--sat0,0px));--sab:max(env(safe-area-inset-bottom,0px),var(--sab0,0px));--bg:#eceef2;--cd:#fff;--tx:#14181f;--mu:#868c97;--ln:#e3e6ec;--ac:#2f5bff;--ac2:#e8edff;--dg:#e5484d;--in:#f3f5f8;--d:.34s;--e:cubic-bezier(.32,.72,0,1);--rb:14px;--cp:12px;--gp:40px;--sh:rgba(20,24,31,.13);
 box-sizing:border-box}
@@ -1269,7 +1287,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261111j';
+const BUILD='20261112a';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
