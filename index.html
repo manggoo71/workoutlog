@@ -1291,7 +1291,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261120a';
+const BUILD='20261125a';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1444,9 +1444,12 @@ function voWarm(sec){
   if(!VO.nz||VO.nz.sampleRate!==c.sampleRate){const n=c.createBuffer(1,c.sampleRate/2|0,c.sampleRate),a=n.getChannelData(0);for(let j=0;j<a.length;j++)a[j]=(Math.random()*2-1)*3e-5;VO.nz=n}
   try{const s=c.createBufferSource();s.buffer=VO.nz;s.loop=true;s.connect(c.destination);s.start();s.stop(c.currentTime+sec);VO.warm=s}catch(e){}
 }
+/* 안내 음성 볼륨: 원래 음성의 10%(−20dB). 비교 페이지에서 '90% 줄인 것'으로 고른 값 */
+const VOL=.1;
 function voPlay(i,dl){
   const c=VO.ctx;if(!VO.on)return;
-  const s=c.createBufferSource(),[o,d]=VSEG[i];s.buffer=VO.buf;s.connect(c.destination);
+  if(!c._g){c._g=c.createGain();c._g.gain.value=VOL;c._g.connect(c.destination)}
+  const s=c.createBufferSource(),[o,d]=VSEG[i];s.buffer=VO.buf;s.connect(c._g);
   /* 이어폰 지연만큼 먼저 시작해서 30초가 되는 순간 귀에 들리게 */
   const at=c.currentTime+Math.max(0,dl-(c.outputLatency||0));
   s.start(at,o,d);VO.pend={s,at};vlog(vsec(i)+' 재생');
