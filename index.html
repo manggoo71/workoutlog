@@ -1291,7 +1291,7 @@ addEventListener('pageshow',wake);
   },1500)};
   keep();addEventListener('resize',keep);document.addEventListener('visibilitychange',()=>{if(!document.hidden)keep()});
 })();
-const BUILD='20261125a';
+const BUILD='20261125b';
 async function chk(){
   try{
     if(!window.fetch||location.protocol.indexOf('http')!==0)return;
@@ -1444,8 +1444,8 @@ function voWarm(sec){
   if(!VO.nz||VO.nz.sampleRate!==c.sampleRate){const n=c.createBuffer(1,c.sampleRate/2|0,c.sampleRate),a=n.getChannelData(0);for(let j=0;j<a.length;j++)a[j]=(Math.random()*2-1)*3e-5;VO.nz=n}
   try{const s=c.createBufferSource();s.buffer=VO.nz;s.loop=true;s.connect(c.destination);s.start();s.stop(c.currentTime+sec);VO.warm=s}catch(e){}
 }
-/* 안내 음성 볼륨: 원래 음성의 10%(−20dB). 비교 페이지에서 '90% 줄인 것'으로 고른 값 */
-const VOL=.1;
+/* 안내 음성 볼륨: 원래 음성의 20%(−14dB). 비교 페이지에서 '80% 줄인 것'으로 고른 값 */
+const VOL=.2;
 function voPlay(i,dl){
   const c=VO.ctx;if(!VO.on)return;
   if(!c._g){c._g=c.createGain();c._g.gain.value=VOL;c._g.connect(c.destination)}
